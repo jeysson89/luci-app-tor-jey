@@ -1,0 +1,34 @@
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2025-06-15 17:45+0000\n"
+"Last-Translator: தமிழ்நேரம் <anishprabu.t@gmail.com>\n"
+"Language-Team: Tamil <https://hosted.weblate.org/projects/openwrt/"
+"luciapplicationstor/ta/>\n"
+"Language: ta\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.12-dev\n"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor.js:21
+msgid "Custom config"
+msgstr "தனிப்பயன் கட்டமைப்பு"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-hs.js:34
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor.js:12
+msgid "For further information <a %s>check the documentation</a>"
+msgstr "மேலும் தகவலுக்கு <a %s> ஆவணங்களை சரிபார்க்கவும் </a>"
+
+#: applications/luci-app-tor/root/usr/share/rpcd/acl.d/luci-app-tor.json:3
+msgid "Grant UCI access for luci-app-tor"
+msgstr "லூசி-ஆப்-டோருக்கு யுசிஐ அணுகல் வழங்கவும்"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor.js:18
+msgid "Include configs"
+msgstr "உள்ளமைவுகளைச் சேர்க்கவும்"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor.js:11
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:3
+msgid "Tor onion router"
+msgstr "டோர் வெங்காய திசைவி"
+

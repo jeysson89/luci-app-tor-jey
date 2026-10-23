@@ -1,0 +1,132 @@
+#!/bin/sh
+# tor-bridge-mon — лёгкий фоновый мониторинг доступности мостов (luci-app-tor).
+#
+# Раз в bridge_mon_interval секунд делает по одному TCP-probe на каждый мост
+# (curl с connect-timeout 3 c) и пишет результат в файл состояния:
+#   /tmp/tor_pro_bridge_mon.state  (sec|ts|ok|ms|okc|totc|addr)
+#
+# Нагрузка: ~1 исходящее TCP-соединение на мост за цикл, CPU около нуля,
+# между циклами процесс просто спит. Отключается в uci:
+#   uci set tor_pro.settings.bridge_mon_enabled='0'
+# Мгновенный прогон (без ожидания интервала):
+#   touch /tmp/tor_pro_bridge_mon.now
+
+STATE="/tmp/tor_pro_bridge_mon.state"
+NOW_FLAG="/tmp/tor_pro_bridge_mon.now"
+JOBS="/tmp/tor_pro_bridge_mon.jobs"
+
+# probe <addr> <url> — TCP-доступность, печатает "ok<TAB>ms"
+probe() {
+	local host port ms msi
+	if [ -n "$2" ]; then
+		host=$(printf '%s' "$2" | sed -e 's|^[a-zA-Z]*://||' -e 's|/.*$||' -e 's|:[0-9]*$||')
+		port=443
+	else
+		[ -n "$1" ] || { printf '0\t0\n'; return 0; }
+		host=$(printf '%s' "$1" | cut -d: -f1)
+		port=$(printf '%s' "$1" | cut -d: -f2)
+		[ -n "$port" ] || port=443
+		[ -n "$port" ] || { printf '0\t0\n'; return 0; }
+	fi
+	[ -n "$host" ] || { printf '0\t0\n'; return 0; }
+	ms=$(curl -s -o /dev/null --connect-timeout 3 --max-time 6 \
+		-w '%{time_connect}' "http://$host:$port/" 2>/dev/null)
+	case "$?" in
+	7|28) printf '0\t0\n' ;;
+	*)
+		msi=$(awk -v m="$ms" 'BEGIN{ d=m*1000; printf "%d", (d-int(d)>=0.5)?int(d)+1:int(d) }')
+		printf '1\t%s\n' "${msi:-0}"
+		;;
+	esac
+}
+
+# уточнить адрес из raw-строки моста (секции, где весь мост в одном параметре line)
+addr_from_line() {
+	# $1 — line. vanilla: "addr fp"; obfs4: "obfs4 addr fp ..."; snowflake/meek: брокер в url=
+	set -- $1
+	case "$1" in
+	obfs4) printf '%s\n' "$2" ;;
+	snowflake|meek-azure|meek) printf '%s\n' "$(printf '%s' "$1" | tr ' ' '\n' | sed -n 's/^url=//p' | head -1 | cut -d/ -f3)" ;;
+	*) printf '%s\n' "$1" ;;
+	esac
+}
+
+while :; do
+	# настройки читаем каждый цикл: вкл/выкл действует без перезапуска
+	en=$(uci -q get tor_pro.settings.bridge_mon_enabled 2>/dev/null)
+	if [ "$en" = "0" ]; then
+		rm -f "$NOW_FLAG"
+		sleep 30
+		continue
+	fi
+
+	interval=$(uci -q get tor_pro.settings.bridge_mon_interval 2>/dev/null)
+	case "$interval" in ''|*[!0-9]*) interval=300 ;; esac
+	[ "$interval" -lt 30 ] && interval=30
+
+	rm -f "$NOW_FLAG"
+	NEW="/tmp/tor_pro_bridge_mon.new.$$"
+	: > "$NEW"
+
+	# подготовить список секций: sec<TAB>addr<TAB>url
+	uci -q show tor_pro 2>/dev/null | grep '=bridge$' | sed 's/=bridge$//; s/^tor_pro\.//' > "$JOBS"
+
+	batch=0
+	while IFS= read -r sec; do
+		[ -n "$sec" ] || continue
+		addr=$(uci -q get "tor_pro.$sec.addr" 2>/dev/null)
+		url=$(uci -q get "tor_pro.$sec.url" 2>/dev/null)
+		if [ -z "$addr" ]; then
+			line=$(uci -q get "tor_pro.$sec.line" 2>/dev/null)
+			if [ -n "$line" ]; then
+				a2=$(addr_from_line "$line")
+				case "$line" in
+				snowflake*|meek*) : ;;
+				*) addr="$a2" ;;
+				esac
+			fi
+		fi
+		# снежинка/мock: пробуем брокера (url), у vanalla/obfs4 — сам адрес
+		target_url="$url"
+		if [ -z "$target_url" ]; then
+			line=$(uci -q get "tor_pro.$sec.line" 2>/dev/null)
+			case "$line" in
+			snowflake*|meek*) target_url=$(printf '%s' "$line" | tr ' ' '\n' | tr -d "'" | sed -n 's/^url=//p' | head -1) ;;
+			esac
+		fi
+		(
+			res=$(probe "$addr" "$target_url")
+			printf '%s\t%s\t%s\n' "$sec" "$res" "$addr" >> "$NEW"
+		) &
+		batch=$((batch+1))
+		if [ "$batch" -ge 8 ]; then
+			wait
+			batch=0
+		fi
+	done < "$JOBS"
+	wait
+
+	# слить со старыми счётчиками: old sec|ts|ok|ms|okc|totc|addr → new
+	if [ -s "$STATE" ]; then
+		awk -v ts="$(date +%s)" '
+			BEGIN { FS="[|\t]"; OFS="|" }
+			NR==FNR { okc[$1]=$5+0; totc[$1]=$6+0; next }
+			{ ok=($2+0); printf "%s|%d|%d|%s|%d|%d|%s\n", $1, ts, ok, $3, okc[$1]+ok, totc[$1]+1, $4 }
+		' "$STATE" "$NEW" > "$NEW.m"
+	else
+		awk -v ts="$(date +%s)" '
+			BEGIN { FS=OFS="\t" }
+			{ printf "%s|%d|%d|%s|%d|%d|%s\n", $1, ts, $2, $3, ($2+0), 1, $4 }
+		' "$NEW" > "$NEW.m"
+	fi
+	mv "$NEW.m" "$STATE"
+	rm -f "$NEW"
+
+	# ожидание интервала (с реакцией на мгновенный прогон)
+	i=0
+	while [ "$i" -lt "$interval" ]; do
+		[ -f "$NOW_FLAG" ] && break
+		sleep 5
+		i=$((i+5))
+	done
+done

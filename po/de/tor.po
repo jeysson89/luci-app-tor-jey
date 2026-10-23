@@ -1,0 +1,36 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"PO-Revision-Date: 2024-10-20 13:17+0000\n"
+"Last-Translator: ssantos <ssantos@web.de>\n"
+"Language-Team: German <https://hosted.weblate.org/projects/openwrt/"
+"luciapplicationstor/de/>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.8-rc\n"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor.js:21
+msgid "Custom config"
+msgstr "Benutzerdefinierte Konfig"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-hs.js:34
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor.js:12
+msgid "For further information <a %s>check the documentation</a>"
+msgstr "Für weitere Informationen <a %s>überprüfen Sie die Dokumentation</a>"
+
+#: applications/luci-app-tor/root/usr/share/rpcd/acl.d/luci-app-tor.json:3
+msgid "Grant UCI access for luci-app-tor"
+msgstr "UCI Zugriff auf luci-app-tor gewähren"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor.js:18
+msgid "Include configs"
+msgstr "Konfigs einbinden"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor.js:11
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:3
+msgid "Tor onion router"
+msgstr "Tor Onion-Router"
+

@@ -1,0 +1,638 @@
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2026-04-25 12:14+0000\n"
+"Last-Translator: SnIPeRSnIPeR "
+"<snipersniper@users.noreply.hosted.weblate.org>\n"
+"Language-Team: Russian <https://hosted.weblate.org/projects/openwrt/"
+"luciapplicationstor/ru/>\n"
+"Language: ru\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Weblate 5.17.1-dev\n"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor.js:21
+msgid "Custom config"
+msgstr "Пользовательская конфигурация"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-hs.js:34
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor.js:12
+msgid "For further information <a %s>check the documentation</a>"
+msgstr ""
+"Для получения дополнительной информации <a %s>ознакомьтесь с документацией</"
+"a>"
+
+#: applications/luci-app-tor/root/usr/share/rpcd/acl.d/luci-app-tor.json:3
+msgid "Grant UCI access for luci-app-tor"
+msgstr "Предоставить доступ к UCI для luci-app-tor"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor.js:18
+msgid "Include configs"
+msgstr "Включаемая конфигурация"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor.js:11
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:3
+msgid "Tor onion router"
+msgstr "Tor луковичный роутер"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:117
+msgid "Active bridges"
+msgstr "Активные мосты"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:70
+msgid "Add again"
+msgstr "Добавить снова"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:88
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:78
+msgid "Auto refresh"
+msgstr "Автообновление"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/bridges.js:37
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:52
+msgid "Bridges"
+msgstr "Мосты"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/bridges.js:59
+msgid "Bridges applied, Tor has been restarted."
+msgstr "Мосты применены, Tor перезапущен."
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:196
+msgid "Channel"
+msgstr "Канал"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:41
+msgid "Detected devices"
+msgstr "Обнаруженные устройства"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:222
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:46
+msgid "Device"
+msgstr "Устройство"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:67
+msgid "Device %s added to the list."
+msgstr "Устройство %s добавлено в список."
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/bridges.js:59
+msgid "Failed to apply bridges: %s"
+msgstr "Не удалось применить мосты: %s"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:91
+msgid "Failed to apply routing: %s"
+msgstr "Не удалось применить маршрутизацию: %s"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:47
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:222
+msgid "IP address"
+msgstr "IP-адрес"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:33
+msgid "IP address or subnet"
+msgstr "IP-адрес или подсеть"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:89
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:79
+msgid "Interval"
+msgstr "Интервал"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:222
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:48
+msgid "MAC"
+msgstr "MAC"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:34
+msgid "MAC address"
+msgstr "MAC-адрес"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:33
+msgid "Name"
+msgstr "Имя"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:222
+msgid "No bridges configured"
+msgstr "Мосты не настроены"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:88
+msgid "No devices found"
+msgstr "Устройства не найдены"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:258
+msgid "No traffic through Tor yet"
+msgstr "Трафика через Tor пока нет"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:196
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:222
+msgid "Packets"
+msgstr "Пакеты"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:94
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:83
+msgid "Refresh"
+msgstr "Обновить"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:35
+msgid "Route through Tor"
+msgstr "Маршрутизировать через Tor"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:31
+msgid "Routed clients"
+msgstr "Клиенты за Tor"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:104
+msgid "Routing applied, firewall reloaded."
+msgstr "Маршрутизация применена, firewall перезагружен."
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:79
+msgid "Service status"
+msgstr "Состояние сервисов"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:222
+msgid "Speed"
+msgstr "Скорость"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:104
+msgid "Summary"
+msgstr "Сводка"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:49
+msgid "Through Tor"
+msgstr "Через Tor"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/log.js:4
+msgid "Tor Log"
+msgstr "Лог Tor"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:196
+msgid "Total"
+msgstr "Всего"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:222
+msgid "Traffic"
+msgstr "Трафик"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:110
+msgid "Traffic by device"
+msgstr "Трафик по устройствам"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:257
+msgid "Traffic counters are not available. Apply the routing settings to enable monitoring."
+msgstr ""
+"Счётчики трафика недоступны. Примените настройки маршрутизации, чтобы включить "
+"мониторинг."
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:132
+msgid "Traffic through Tor"
+msgstr "Трафик через Tor"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:180
+msgid "Uptime"
+msgstr "Время работы"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:78
+msgid "device name or IP"
+msgstr "имя устройства или IP"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:48
+msgid "no"
+msgstr "нет"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:182
+msgid "running"
+msgstr "работает"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:90
+msgid "s"
+msgstr "с"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:182
+msgid "stopped"
+msgstr "остановлен"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:48
+msgid "yes"
+msgstr "да"
+
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:88
+msgid "Log"
+msgstr "Лог"
+
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:76
+msgid "Monitoring"
+msgstr "Мониторинг"
+
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:64
+msgid "Routing"
+msgstr "Маршрутизация"
+
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:52
+msgid "Status"
+msgstr "Статус"
+
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:40
+msgid "Tor"
+msgstr "Tor"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/routing.js:26
+msgid "Choose the devices or subnets whose traffic should go through Tor. The list is written to the %s set of the firewall configuration."
+msgstr ""
+"Выберите устройства или подсети, трафик которых должен идти через Tor. Список "
+"записывается в набор %s конфигурации firewall."
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js:210
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/monitor.js:150
+msgid "All traffic via Tor"
+msgstr "Весь трафик через Tor"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "Daemon"
+msgstr "Демон"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "Bootstrap"
+msgstr "Загрузка"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "bridges enabled"
+msgstr "мосты включены"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "direct connection"
+msgstr "прямое подключение"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "max"
+msgstr "макс"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "avg"
+msgstr "сред"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "samples"
+msgstr "замеров"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "unknown device"
+msgstr "неизвестное устройство"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "now"
+msgstr "сейчас"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "all clients"
+msgstr "все клиенты"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "of"
+msgstr "из"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "monitored clients"
+msgstr "клиентов под наблюдением"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "Share"
+msgstr "Доля"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/status.js
+msgid "not configured"
+msgstr "не настроено"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/bridges.js
+msgid "Apply"
+msgstr "Применение"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/bridges.js
+msgid "both addresses and subnets are supported"
+msgstr "поддерживаются и адреса, и подсети"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/bridges.js
+msgid "No clients"
+msgstr "Клиентов нет"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/bridges.js
+msgid "Add"
+msgstr "Добавить"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/bridges.js
+msgid "Save & Apply"
+msgstr "Сохранить и применить"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Bridges are used to reach the Tor network in countries where the direct connection is blocked."
+msgstr "Мосты нужны для доступа к сети Tor в странах, где прямое соединение заблокировано."
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js
+msgid "Total traffic"
+msgstr "Всего трафика"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js
+msgid "Active devices"
+msgstr "Активных устройств"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js
+msgid "Delete"
+msgstr "Удалить"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-log.js
+msgid "filter text"
+msgstr "фильтр по тексту"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-log.js
+msgid "Follow"
+msgstr "Следить"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-log.js
+msgid "lines"
+msgstr "строк"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Add bridge"
+msgstr "Добавить мост"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Packages"
+msgstr "Пакеты"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Bridge packages"
+msgstr "Пакеты для мостов"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "installed"
+msgstr "установлен"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "not installed"
+msgstr "не установлен"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Install"
+msgstr "Установить"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Package %s installed"
+msgstr "Пакет %s установлен"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Failed to install %s: %s"
+msgstr "Не удалось установить %s: %s"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "unknown error"
+msgstr "неизвестная ошибка"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Destinations via Tor"
+msgstr "Назначения через Tor"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Destination"
+msgstr "Назначение"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Port"
+msgstr "Порт"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Settings"
+msgstr "Настройки"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js
+msgid "Killswitch"
+msgstr "Killswitch"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js
+msgid "routed via Tor"
+msgstr "маршрутизируются через Tor"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js
+msgid "Clients"
+msgstr "Клиенты"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js
+msgid "not required"
+msgstr "не требуется"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js
+msgid "Killswitch blocks any traffic that would bypass Tor for the selected clients, so nothing leaks to the internet if Tor is down."
+msgstr "Killswitch блокирует весь трафик выбранных клиентов, который мог бы уйти мимо Tor — ничего не утечёт в интернет, если Tor упал."
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "alive"
+msgstr "живой"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "unreachable"
+msgstr "недоступен"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "not used yet"
+msgstr "ещё не использовался"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "not in consensus"
+msgstr "нет в консенсусе"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "connections"
+msgstr "подключений"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "circuits"
+msgstr "цепочек"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "confirmed"
+msgstr "подтверждён"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Statistics"
+msgstr "Статистика"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Use"
+msgstr "Использовать"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "The Use checkbox controls whether the bridge is written to the Tor configuration file %s when you apply. Bridges that are already present in /etc/tor/torrc manually are used by Tor regardless of this list."
+msgstr "Галочка «Использовать» определяет, попадёт ли мост в файл конфигурации Tor %s при применении. Мосты, которые уже прописаны вручную в /etc/tor/torrc, tor использует независимо от этого списка."
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Test"
+msgstr "Тест"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Testing..."
+msgstr "Проверка..."
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "reachable"
+msgstr "доступен"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "ping ok"
+msgstr "ping есть"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Test failed"
+msgstr "Проверка не удалась"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Availability"
+msgstr "Доступность"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Core packages"
+msgstr "Основные пакеты"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Routing packages"
+msgstr "Пакеты маршрутизации"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Address"
+msgstr "Адрес"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Fingerprint"
+msgstr "Отпечаток"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "URL"
+msgstr "URL"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "ICE servers"
+msgstr "ICE-серверы"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "Comment"
+msgstr "Комментарий"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "host:port of the bridge"
+msgstr "host:port моста"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "40 hex characters, mandatory for obfs4"
+msgstr "40 hex-символов, обязательно для obfs4"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "pluggable transport endpoint"
+msgstr "адрес pluggable-транспорта"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js
+msgid "comma separated STUN servers"
+msgstr "STUN-серверы через запятую"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Certificate"
+msgstr "Сертификат"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "iat-mode"
+msgstr "iat-режим"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "certificate parameter from the bridge line (cert=...)"
+msgstr "параметр cert= из строки моста"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "intensity anti-traffic analysis: 0 or 1 or 2"
+msgstr "интенсивность защиты от анализа трафика: 0, 1 или 2"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Extra parameters"
+msgstr "Доп. параметры"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "additional parameters, for example ampcache=... front=..."
+msgstr "дополнительные параметры, например ampcache=... front=..."
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "Bridge monitor"
+msgstr "Доступность мостов"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "monitoring is running (background, ~0% CPU)"
+msgstr "мониторинг работает (фоном, ~0% CPU)"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "monitoring is stopped"
+msgstr "мониторинг остановлен"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "Background monitoring"
+msgstr "Фоновый мониторинг"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "Check interval"
+msgstr "Интервал проверки"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "seconds between checks"
+msgstr "секунд между проверками"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "Check now"
+msgstr "Проверить сейчас"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "Check started, results in a few seconds"
+msgstr "Проверка запущена, результаты через несколько секунд"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "Bridge list changed — reopen tor via «Apply bridges»"
+msgstr "Список мостов изменён — примените кнопкой «Применить мосты»"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "Tor bridges applied and tor restarted"
+msgstr "Мосты применены, tor перезапущен"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "Apply bridges"
+msgstr "Применить мосты"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "Type"
+msgstr "Тип"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "Checks OK"
+msgstr "Проверок успешных"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "Checked at"
+msgstr "Проверено"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "No bridges configured — add them on the «Bridges» tab"
+msgstr "Мосты не настроены — добавьте на вкладке «Мосты»"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js
+msgid "not checked yet"
+msgstr "ещё не проверен"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "used right now"
+msgstr "используется сейчас"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Edit"
+msgstr "Изменить"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Cancel"
+msgstr "Отмена"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "new bridge"
+msgstr "новый мост"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js
+msgid "Address is required"
+msgstr "Укажите адрес моста"

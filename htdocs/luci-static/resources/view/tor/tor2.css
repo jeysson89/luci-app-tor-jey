@@ -1,0 +1,729 @@
+/*
+ * luci-app-tor — оформление собственных страниц (дашборд, мониторинг).
+ * Опирается на переменные темы LuCI, поэтому корректно работает
+ * и в светлой, и в тёмной теме.
+ */
+
+.tor-wrap {
+	margin: 0;
+}
+
+.tor-wrap .cbi-section {
+	margin-bottom: 18px;
+}
+
+/* ---------- карточки ---------- */
+
+.tor-card {
+	background: var(--background-color-high);
+	border: 1px solid var(--border-color);
+	border-radius: 12px;
+	padding: 18px 20px;
+	margin-bottom: 18px;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+}
+
+.tor-card-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 14px;
+}
+
+.tor-card-title {
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: .09em;
+	text-transform: uppercase;
+	opacity: .62;
+	margin: 0;
+}
+
+/* ---------- плитки показателей ---------- */
+
+.tor-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 14px;
+}
+
+.tor-stat {
+	background: var(--background-color-medium);
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	padding: 14px 16px;
+	min-height: 84px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.tor-stat-label {
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: .07em;
+	text-transform: uppercase;
+	opacity: .55;
+}
+
+.tor-stat-value {
+	font-size: 25px;
+	font-weight: 600;
+	line-height: 1.25;
+	margin-top: 5px;
+	word-break: break-word;
+}
+
+.tor-stat-value.tor-sm {
+	font-size: 18px;
+}
+
+.tor-stat-sub {
+	font-size: 12px;
+	opacity: .6;
+	margin-top: 3px;
+	font-family: var(--font-mono);
+}
+
+/* ---------- бейджи статуса ---------- */
+
+.tor-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 4px 12px 4px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.5;
+	color: #fff;
+	white-space: nowrap;
+}
+
+.tor-badge::before {
+	content: '';
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: currentColor;
+	flex: 0 0 auto;
+}
+
+.tor-badge-ok    { background: var(--success-color-high); }
+.tor-badge-bad   { background: var(--error-color-high); }
+.tor-badge-warn  { background: var(--warning-color-high); color: #101010; }
+.tor-badge-info  { background: var(--primary-color-high); }
+.tor-badge-muted { background: var(--background-color-high); color: var(--text-color-medium, #888); border: 1px solid var(--border-color); }
+.tor-badge-muted::before { background: currentColor; opacity: .6; }
+
+/* ---------- панель управления ---------- */
+
+.tor-toolbar {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 16px;
+	background: var(--background-color-high);
+	border: 1px solid var(--border-color);
+	border-radius: 12px;
+	padding: 12px 18px;
+	margin-bottom: 18px;
+}
+
+.tor-toolbar label {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	opacity: .85;
+	margin: 0;
+}
+
+.tor-toolbar .cbi-button {
+	margin: 0;
+}
+
+/* ---------- таблицы ---------- */
+
+.tor-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.tor-table th {
+	text-align: left;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .07em;
+	text-transform: uppercase;
+	opacity: .5;
+	padding: 0 12px 8px 0;
+	border-bottom: 1px solid var(--border-color);
+	white-space: nowrap;
+}
+
+.tor-table td {
+	padding: 9px 12px 9px 0;
+	border-bottom: 1px solid var(--border-color);
+	vertical-align: middle;
+}
+
+.tor-table th.tor-num,
+.tor-table td.tor-num {
+	white-space: nowrap;
+	padding-right: 0;
+}
+
+/* чекбоксы в таблице: по центру своей колонки */
+.tor-table input[type="checkbox"] {
+	margin: 0;
+	vertical-align: middle;
+}
+
+.tor-table td .cbi-input-text,
+.tor-table td .cbi-input-select {
+	width: 100%;
+	min-width: 90px;
+}
+
+.tor-table td .cbi-input-checkbox {
+	margin: 0;
+}
+
+.tor-table th.tor-num,
+.tor-table td.tor-num {
+	white-space: nowrap;
+	padding-right: 0;
+}
+
+.tor-table tr:last-child td {
+	border-bottom: none;
+}
+
+.tor-table tbody tr:hover td {
+	background: var(--background-color-low);
+}
+
+.tor-num {
+	text-align: right;
+	padding-right: 0 !important;
+	font-variant-numeric: tabular-nums;
+	font-family: var(--font-mono);
+	white-space: nowrap;
+}
+
+.tor-mono {
+	font-family: var(--font-mono);
+	font-size: 12.5px;
+}
+
+.tor-dim {
+	opacity: .6;
+}
+
+.tor-empty {
+	padding: 18px 0;
+	text-align: center;
+	opacity: .55;
+	font-style: italic;
+}
+
+/* ---------- полоса доли трафика ---------- */
+
+.tor-bar {
+	height: 6px;
+	border-radius: 3px;
+	background: var(--background-color-low);
+	overflow: hidden;
+	min-width: 90px;
+}
+
+.tor-bar > i {
+	display: block;
+	height: 100%;
+	border-radius: 3px;
+	background: var(--primary-color-high);
+	transition: width .4s ease;
+}
+
+/* ---------- график скорости ---------- */
+
+.tor-chart-box {
+	position: relative;
+	margin-top: 6px;
+}
+
+.tor-chart {
+	display: block;
+	width: 100%;
+	height: 190px;
+	border-radius: 8px;
+	background: var(--background-color-low);
+	overflow: hidden;
+}
+
+.tor-chart .grid {
+	stroke: var(--border-color);
+	stroke-width: 1;
+	vector-effect: non-scaling-stroke;
+}
+
+.tor-chart .area {
+	fill: var(--primary-color-high);
+	opacity: .22;
+}
+
+.tor-chart .line {
+	fill: none;
+	stroke: var(--primary-color-high);
+	stroke-width: 2;
+	stroke-linejoin: round;
+	stroke-linecap: round;
+	vector-effect: non-scaling-stroke;
+}
+
+.tor-chart .axis-label {
+	fill: currentColor;
+	opacity: .45;
+	font-size: 10px;
+	font-family: var(--font-sans);
+}
+
+.tor-chart-legend {
+	display: flex;
+	justify-content: space-between;
+	font-size: 11.5px;
+	opacity: .55;
+	margin-top: 6px;
+	font-family: var(--font-mono);
+}
+
+/* ---------- слушатели ---------- */
+
+.tor-ports {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.tor-port {
+	background: var(--background-color-medium);
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	padding: 8px 14px;
+	font-size: 13px;
+}
+
+.tor-port b {
+	font-family: var(--font-mono);
+	font-weight: 600;
+}
+
+.tor-port span {
+	opacity: .6;
+	margin-right: 6px;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+}
+
+/* ---------- список мостов ---------- */
+
+.tor-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.tor-list-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	background: var(--background-color-medium);
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	padding: 10px 14px;
+}
+
+.tor-list-item .tor-list-main {
+	flex: 1 1 240px;
+	min-width: 0;
+}
+
+.tor-list-item .tor-list-title {
+	font-weight: 600;
+	font-size: 13.5px;
+}
+
+.tor-list-item .tor-list-sub {
+	font-size: 12px;
+	opacity: .6;
+	font-family: var(--font-mono);
+	word-break: break-all;
+}
+
+/* ---------- подсказки ---------- */
+
+.tor-hint {
+	background: var(--background-color-medium);
+	border-left: 3px solid var(--primary-color-high);
+	border-radius: 6px;
+	padding: 12px 16px;
+	font-size: 13px;
+	line-height: 1.55;
+	margin-bottom: 16px;
+}
+
+.tor-hint code {
+	font-family: var(--font-mono);
+	font-size: 12px;
+	background: var(--background-color-low);
+	padding: 1px 5px;
+	border-radius: 4px;
+}
+
+/* ---------- формы в стиле карточек ---------- */
+
+.tor-form .cbi-section {
+	background: var(--background-color-high);
+	border: 1px solid var(--border-color);
+	border-radius: 12px;
+	padding: 16px 20px 8px;
+	margin-bottom: 18px;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+}
+
+.tor-form .cbi-section > .cbi-title {
+	margin: 0 0 12px;
+}
+
+.tor-form .cbi-section > .cbi-title > h3 {
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: .09em;
+	text-transform: uppercase;
+	opacity: .62;
+	margin: 0;
+}
+
+.tor-form .cbi-section-descr {
+	font-size: 13px;
+	line-height: 1.55;
+	opacity: .7;
+	margin-bottom: 14px;
+}
+
+.tor-form .cbi-value {
+	margin-bottom: 16px;
+	align-items: center;
+}
+
+.tor-form .cbi-value > label {
+	font-weight: 600;
+	font-size: 13.5px;
+	width: 220px;
+	padding-right: 14px;
+}
+
+.tor-form .cbi-value > .cbi-value-field {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.tor-form .cbi-value-field > input[type="text"],
+.tor-form .cbi-value-field > input[type="number"] {
+	width: 100%;
+	max-width: 520px;
+}
+
+.tor-form .cbi-value-field > .cbi-input-checkbox {
+	margin-right: 8px;
+}
+
+.tor-form .cbi-value-field > label {
+	font-weight: 400;
+	font-size: 13px;
+	opacity: .85;
+}
+
+.tor-form .table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.tor-form .table th {
+	text-align: left;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .07em;
+	text-transform: uppercase;
+	opacity: .5;
+	padding: 0 12px 8px 0;
+	border-bottom: 1px solid var(--border-color);
+	white-space: nowrap;
+}
+
+.tor-form .table td {
+	padding: 8px 12px 8px 0;
+	border-bottom: 1px solid var(--border-color);
+	vertical-align: middle;
+}
+
+.tor-form .table tr:last-child td {
+	border-bottom: none;
+}
+
+.tor-form .table td input[type="text"] {
+	width: 100%;
+	min-width: 120px;
+}
+
+.tor-form .table .cbi-value {
+	margin: 0;
+}
+
+.tor-form .table .cbi-value > label {
+	display: none;
+}
+
+.tor-form .table .btn {
+	font-size: 12px;
+	padding: 4px 10px;
+}
+
+/* лог */
+#content_syslog {
+	background: var(--background-color-high);
+	border: 1px solid var(--border-color);
+	border-radius: 12px;
+	padding: 16px 20px;
+	margin-bottom: 18px;
+}
+
+#content_syslog textarea {
+	width: 100%;
+	background: var(--background-color-low);
+	border-radius: 8px;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+/* ---------- карточка моста ---------- */
+
+.tor-bridge {
+	background: var(--background-color-medium);
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	padding: 12px 16px;
+	margin-bottom: 12px;
+}
+
+.tor-bridge:last-child {
+	margin-bottom: 0;
+}
+
+.tor-bridge-head {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-bottom: 10px;
+}
+
+.tor-bridge-head .cbi-input-select {
+	width: auto;
+	min-width: 130px;
+	margin: 0;
+}
+
+.tor-bridge-addr {
+	font-family: var(--font-mono);
+	font-size: 13px;
+	opacity: .85;
+	word-break: break-all;
+}
+
+.tor-bridge-en {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	opacity: .85;
+	margin: 0;
+	white-space: nowrap;
+}
+
+.tor-bridge-en .cbi-input-checkbox {
+	margin: 0;
+}
+
+.tor-fields {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 12px 20px;
+}
+
+.tor-field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.tor-field > label {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	opacity: .55;
+	margin: 0;
+}
+
+.tor-field > .cbi-input-text {
+	width: 100%;
+}
+
+.tor-field-hint {
+	font-size: 11.5px;
+	opacity: .5;
+}
+
+/* ---------- блок пакетов ---------- */
+
+.tor-pkg-group {
+	margin-bottom: 16px;
+}
+
+.tor-pkg-group:last-child {
+	margin-bottom: 0;
+}
+
+.tor-pkg-group-title {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .07em;
+	text-transform: uppercase;
+	opacity: .5;
+	margin-bottom: 8px;
+}
+
+.tor-pkg {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex-wrap: wrap;
+	background: var(--background-color-medium);
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	padding: 10px 14px;
+	margin-bottom: 8px;
+}
+
+.tor-pkg:last-child {
+	margin-bottom: 0;
+}
+
+.tor-pkg-name {
+	font-family: var(--font-mono);
+	font-weight: 600;
+	font-size: 13px;
+	min-width: 150px;
+}
+
+.tor-pkg-desc {
+	flex: 1 1 220px;
+	font-size: 12.5px;
+	opacity: .7;
+}
+
+.tor-pkg-ver {
+	font-family: var(--font-mono);
+	font-size: 11.5px;
+	opacity: .55;
+}
+
+.tor-cell-hint {
+	font-size: 10.5px;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	opacity: .45;
+	margin-top: 3px;
+}
+
+/* ---------- компактная таблица мостов ---------- */
+
+table.tor-bridges {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+table.tor-bridges th {
+	text-align: left;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--text-color-medium, #777);
+	padding: 4px 10px;
+	white-space: nowrap;
+}
+
+table.tor-bridges td {
+	padding: 4px 10px;
+	vertical-align: middle;
+	border-top: 1px solid var(--border-color, #e5e5e5);
+}
+
+table.tor-bridges td.tor-cell-cb {
+	width: 34px;
+	text-align: center;
+}
+
+table.tor-bridges td.tor-cell-addr {
+	max-width: 22em;
+}
+
+table.tor-bridges td.tor-cell-addr .tor-mono {
+	font-size: 12px;
+}
+
+table.tor-bridges td.tor-cell-actions {
+	white-space: nowrap;
+	text-align: right;
+}
+
+table.tor-bridges td.tor-cell-actions .cbi-button {
+	padding: 2px 10px;
+	font-size: 12px;
+	margin-left: 4px;
+}
+
+table.tor-bridges tr.tor-row-now {
+	background: color-mix(in srgb, var(--success-color-high, #d1f0d1) 16%, transparent);
+}
+
+table.tor-bridges td.tor-cell-actions .cbi-button.cbi-button-remove {
+	width: auto;
+}
+
+.tor-toolbar-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.tor-toolbar-item .cbi-input-select {
+	padding: 2px 6px;
+	font-size: 12px;
+}
+
+/* ---------- адаптив ---------- */
+
+@media (max-width: 640px) {
+	.tor-card { padding: 14px; }
+	.tor-stat-value { font-size: 21px; }
+	.tor-table th:nth-child(3),
+	.tor-table td:nth-child(3) { display: none; }
+}

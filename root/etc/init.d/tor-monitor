@@ -1,0 +1,24 @@
+#!/bin/sh /etc/rc.common
+# Восстанавливает nft-таблицу мониторинга трафика tor (per-device счётчики).
+# Таблица живёт вне inet fw4, поэтому переживает перезагрузку firewall4,
+# но должна быть создана заново при загрузке системы.
+#
+# Логику создания таблицы держим в /usr/libexec/rpcd/tor-pro-rpc,
+# чтобы правила мониторинга и список клиентов tor всегда совпадали.
+
+START=96
+STOP=00
+
+RPC="/usr/libexec/rpcd/tor-pro-rpc"
+
+start_service() {
+	"$RPC" call apply-monitor >/dev/null 2>&1
+}
+
+stop_service() {
+	nft delete table inet tor_pro 2>/dev/null
+}
+
+reload_service() {
+	"$RPC" call apply-monitor >/dev/null 2>&1
+}

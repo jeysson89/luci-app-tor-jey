@@ -1,0 +1,44 @@
+#!/bin/sh /etc/rc.common
+# Применяет настройки luci-app-tor (мосты, клиенты tor, мониторинг)
+# при изменении /etc/config/tor_pro и при старте системы.
+
+START=99
+STOP=00
+USE_PROCD=0
+
+RPC="/usr/libexec/rpcd/tor-pro-rpc"
+
+service_triggers() {
+	procd_add_reload_trigger "tor-pro" "/etc/config/tor_pro"
+}
+
+# RPC-вызовы rpcd-скрипта: stdin должен быть свободен, вызов в фоне и БЕЗ
+# наследования fd 1000 (блокировка rc.common) — иначе блокировка «утекает»
+# в дочерние процессы и следующие вызовы init-скриптов виснут навсегда.
+call_bg() {
+	( "$RPC" call "$1" >/dev/null 2>&1 </dev/null 1000>&- & )
+}
+
+start_service() {
+	# подхватываем текущий список клиентов tor из firewall (однократно)
+	call_bg devices
+	# на старте: восстановить таблицу мониторинга и применить мосты
+	call_bg apply-monitor
+	call_bg apply-bridges
+	# фоновый мониторинг мостов (сам проверяет uci-настройки каждый цикл);
+	# 1000>&- обязательно: иначе наблюдатель унаследует fd блокировки
+	# rc.common и будет держать её вечно, напугав все вызовы init-скриптов
+	if ! pgrep -f tor-bridge-mon >/dev/null 2>&1; then
+		( /usr/bin/tor-bridge-mon >/dev/null 2>&1 </dev/null 1000>&- & )
+	fi
+}
+
+reload_service() {
+	call_bg apply-monitor
+	call_bg apply-bridges
+}
+
+stop_service() {
+	call_bg apply-monitor
+	killall tor-bridge-mon 2>/dev/null
+}

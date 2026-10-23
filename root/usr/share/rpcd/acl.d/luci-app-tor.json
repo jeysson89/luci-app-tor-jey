@@ -1,0 +1,26 @@
+{
+	"luci-app-tor": {
+		"description": "Grant UCI access for luci-app-tor",
+		"read": {
+			"ubus": {
+				"tor-pro-rpc": [ "status", "config", "devices", "traffic", "monitor", "packages", "bridge-types", "destinations", "test-bridge", "bridge-mon" ],
+				"service": [ "list" ]
+			},
+			"uci": [ "tor", "tor_pro", "firewall" ],
+			"file": {
+				"/etc/tor/*": [ "read" ],
+				"/tmp/torrc": [ "read" ],
+				"/var/run/tor/torrc_generated": [ "read" ]
+			}
+		},
+		"write": {
+			"uci": [ "tor", "tor_pro", "firewall" ],
+			"file": {
+				"/etc/tor/*": [ "write" ]
+			},
+			"ubus": {
+				"tor-pro-rpc": [ "apply-bridges", "apply-routing", "apply-monitor", "install-package", "bridge-mon-now" ]
+			}
+		}
+	}
+}

@@ -1,0 +1,649 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:82
+msgid "40 hex characters, mandatory for obfs4"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:150
+msgid "Active bridges"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:158
+msgid "Active devices"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:62
+msgid "Add"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:156
+msgid "Add again"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:172
+msgid "Add bridge"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:118
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:67
+msgid "Address"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:296
+msgid "All traffic via Tor"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:308
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:200
+msgid "Apply"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:213
+msgid "Apply bridges"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:72
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:124
+msgid "Auto refresh"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:119
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:268
+msgid "Availability"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:184
+msgid "Background monitoring"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:263
+msgid "Bootstrap"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:198
+msgid "Bridge list changed — reopen tor via «Apply bridges»"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:146
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:41
+msgid "Bridge monitor"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:33
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:132
+msgid "Bridge packages"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:218
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:174
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:264
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:28
+msgid "Bridges"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:299
+msgid "Bridges applied, Tor has been restarted."
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:312
+msgid ""
+"Bridges are used to reach the Tor network in countries where the direct "
+"connection is blocked."
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:71
+msgid "Certificate"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:290
+msgid "Channel"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:186
+msgid "Check interval"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:180
+msgid "Check now"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:176
+msgid "Check started, results in a few seconds"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:121
+msgid "Checked at"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:120
+msgid "Checks OK"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:204
+msgid ""
+"Choose the devices or subnets whose traffic should go through Tor. The list "
+"is written to the %s set of the firewall configuration."
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:266
+msgid "Clients"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:74
+msgid "Comment"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:31
+msgid "Core packages"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:159
+msgid "Custom config"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:257
+msgid "Daemon"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:222
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:108
+msgid "Delete"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:261
+msgid "Destination"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:95
+msgid "Destinations via Tor"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:134
+msgid "Detected devices"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:214
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:259
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:172
+msgid "Device"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:152
+msgid "Device %s added to the list."
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:73
+msgid "Extra parameters"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:301
+msgid "Failed to apply bridges: %s"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:193
+msgid "Failed to apply routing: %s"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:83
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:86
+msgid "Failed to install %s: %s"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:68
+msgid "Fingerprint"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-log.js:56
+msgid "Follow"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:153
+msgid "For further information <a %s>check the documentation</a>"
+msgstr ""
+
+#: applications/luci-app-tor/root/usr/share/rpcd/acl.d/luci-app-tor.json:3
+msgid "Grant UCI access for luci-app-tor"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:70
+msgid "ICE servers"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:215
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:260
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:173
+msgid "IP address"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:122
+msgid "IP address or subnet"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:157
+msgid "Include configs"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:91
+msgid "Install"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:73
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:125
+msgid "Interval"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:126
+msgid "Killswitch"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:211
+msgid ""
+"Killswitch blocks any traffic that would bypass Tor for the selected "
+"clients, so nothing leaks to the internet if Tor is down."
+msgstr ""
+
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:80
+msgid "Log"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:174
+msgid "MAC"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:124
+msgid "MAC address"
+msgstr ""
+
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:67
+msgid "Monitoring"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:123
+msgid "Name"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:182
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:318
+msgid "No bridges configured"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:112
+msgid "No bridges configured — add them on the «Bridges» tab"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:69
+msgid "No clients"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:139
+msgid "No devices found"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:209
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:254
+msgid "No traffic through Tor yet"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:78
+msgid "Package %s installed"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:65
+msgid "Packages"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:157
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:216
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:263
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:291
+msgid "Packets"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:262
+msgid "Port"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-log.js:61
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:79
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:130
+msgid "Refresh"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:156
+msgid "Route through Tor"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:64
+msgid "Routed clients"
+msgstr ""
+
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:54
+msgid "Routing"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:191
+msgid "Routing applied, firewall reloaded."
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:32
+msgid "Routing packages"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:306
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:198
+msgid "Save & Apply"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:134
+msgid "Service status"
+msgstr ""
+
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:93
+msgid "Settings"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:219
+msgid "Share"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:218
+msgid "Speed"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:264
+msgid "Statistics"
+msgstr ""
+
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:15
+msgid "Status"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:83
+msgid "Summary"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:87
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:247
+msgid "Test"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:237
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:242
+msgid "Test failed"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:230
+msgid "Testing..."
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:178
+msgid ""
+"The Use checkbox controls whether the bridge is written to the Tor "
+"configuration file %s when you apply. Bridges that are already present in /"
+"etc/tor/torrc manually are used by Tor regardless of this list."
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:159
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:125
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:175
+msgid "Through Tor"
+msgstr ""
+
+#: applications/luci-app-tor/root/usr/share/luci/menu.d/luci-app-tor.json:3
+msgid "Tor"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-log.js:74
+msgid "Tor Log"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:210
+msgid "Tor bridges applied and tor restarted"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:152
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:174
+msgid "Tor onion router"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:292
+msgid "Total"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:156
+msgid "Total traffic"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:217
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:264
+msgid "Traffic"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:89
+msgid "Traffic by device"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:208
+msgid ""
+"Traffic counters are not available. Apply the routing settings to enable "
+"monitoring."
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:140
+msgid "Traffic through Tor"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:117
+msgid "Type"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:69
+msgid "URL"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:262
+msgid "Uptime"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:103
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:122
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:279
+msgid "Use"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:87
+msgid "additional parameters, for example ampcache=... front=..."
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:48
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:76
+msgid "alive"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:157
+msgid "all clients"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:248
+msgid "avg"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:207
+msgid "both addresses and subnets are supported"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:265
+msgid "bridges enabled"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:85
+msgid "certificate parameter from the bridge line (cert=...)"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:59
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:88
+msgid "circuits"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:84
+msgid "comma separated STUN servers"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:60
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:89
+msgid "confirmed"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:57
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:86
+msgid "connections"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:68
+msgid "device name or IP"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:265
+msgid "direct connection"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-log.js:48
+msgid "filter text"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:81
+msgid "host:port of the bridge"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:72
+msgid "iat-mode"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:99
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:145
+msgid "installed"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:86
+msgid "intensity anti-traffic analysis: 0 or 1 or 2"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-log.js:94
+msgid "lines"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:247
+msgid "max"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:159
+msgid "monitored clients"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:148
+msgid "monitoring is running (background, ~0% CPU)"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:148
+msgid "monitoring is stopped"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:164
+msgid "no"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:48
+msgid "not checked yet"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:275
+msgid "not configured"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:46
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:74
+msgid "not in consensus"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:99
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:145
+msgid "not installed"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:126
+msgid "not required"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:51
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:79
+msgid "not used yet"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:156
+msgid "now"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:158
+msgid "of"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:235
+msgid "ping ok"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:83
+msgid "pluggable transport endpoint"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:40
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:78
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:233
+msgid "reachable"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:266
+msgid "routed via Tor"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:258
+msgid "running"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:73
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:125
+msgid "s"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:249
+msgid "samples"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:187
+msgid "seconds between checks"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:258
+msgid "stopped"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:194
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-monitor.js:243
+msgid "unknown device"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-settings.js:84
+msgid "unknown error"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:42
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridge-mon.js:78
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:50
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-bridges.js:239
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-status.js:78
+msgid "unreachable"
+msgstr ""
+
+#: applications/luci-app-tor/htdocs/luci-static/resources/view/tor/tor-routing.js:164
+msgid "yes"
+msgstr ""

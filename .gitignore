@@ -1,0 +1,11 @@
+# .gitignore
+*.apk
+*.lmo
+*.po~
+*~
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+/out/
+/build/

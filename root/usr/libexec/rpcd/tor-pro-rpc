@@ -1,0 +1,962 @@
+#!/bin/sh
+# tor-pro-rpc — сбор данных и управление для LuCI-интерфейса Tor.
+#
+# Вызывается rpcd как /usr/libexec/rpcd/tor-pro-rpc:
+#   $1 = "list" | "call", $2 = имя метода
+#
+# Методы:
+#   status        — состояние демонов, трафик, активные мосты
+#   config        — разобранный эффективный torrc + настройки UCI
+#   devices       — DHCP-устройства и текущий список клиентов tor
+#   monitor       — per-device счётчики трафика через tor
+#   apply-bridges — применить список мостов (перегенерировать torrc, рестарт tor)
+#   apply-routing — применить список клиентов tor (ipset + перезагрузка firewall)
+#   apply-monitor — пересоздать nft-таблицу мониторинга
+
+TORRC="/etc/tor/torrc"
+TORRC_GEN="/tmp/torrc"
+BRIDGES_FILE="/etc/tor/torrc_bridges"
+UCI_PRO="tor_pro"
+FW_CONF="firewall"
+IPSET_NAME="tor_clients"
+MON_TABLE="tor_pro"
+MON_CHAIN="input"
+DHCP_LEASES="/tmp/dhcp.leases"
+TOR_STATE="/var/lib/tor/state"
+FW_BACKUP="/tmp/tor_pro_firewall.bak"
+CT_STATE="/tmp/tor_pro_ct.state"
+
+# --- учёт трафика по conntrack ------------------------------------------------
+#
+# Счётчики nft в netfilter не дают достоверных байтов: их «съедает» учёт
+# conntrack (байты уходят в ct-запись, счётчику достаётся только первый пакет
+# потока). Реальный объём лежит в самих ct-записях, поэтому суммируем их,
+# а накопление ведём по максимуму байт каждого потока — итог монотонный.
+ct_accounting() {
+	[ -r /proc/net/nf_conntrack ] || return 0
+	awk -v state="$CT_STATE" '
+	BEGIN {
+		while ((getline line < state) > 0) {
+			p = index(line, " ")
+			if (p == 0) continue
+			k = substr(line, 1, p - 1)
+			v = substr(line, p + 1)
+			if (k == "TOTAL") {
+				split(v, a, " ")
+				totals[a[1]] = a[2] + 0
+				totp[a[1]] = a[3] + 0
+				dnst[a[1]] = a[4] + 0
+				dnsp[a[1]] = a[5] + 0
+				tcpt[a[1]] = a[6] + 0
+				tcpk[a[1]] = a[7] + 0
+			} else {
+				split(v, a, " ")
+				seen[k] = a[1] + 0
+				seenp[k] = a[2] + 0
+				order[++cnt] = k
+			}
+		}
+		close(state)
+	}
+	{
+		n = split($0, f, " ")
+		src = ""; dst = ""; sport = ""; dport = ""; b1 = 0; b2 = 0; sport2 = ""
+		p1 = 0; p2 = 0
+		for (i = 1; i <= n; i++) {
+			if (f[i] ~ /^src=/) { if (src == "") src = substr(f[i], 5); else src2 = substr(f[i], 5) }
+			else if (f[i] ~ /^dst=/) { if (dst == "") dst = substr(f[i], 5); else dst2 = substr(f[i], 5) }
+			else if (f[i] ~ /^sport=/) { if (sport == "") sport = substr(f[i], 7); else sport2 = substr(f[i], 7) }
+			else if (f[i] ~ /^dport=/) { if (dport == "") dport = substr(f[i], 7); else dport2 = substr(f[i], 7) }
+			else if (f[i] ~ /^bytes=/) { if (b1 == 0) b1 = substr(f[i], 7) + 0; else b2 = substr(f[i], 7) + 0 }
+			else if (f[i] ~ /^packets=/) { if (p1 == 0) p1 = substr(f[i], 9) + 0; else p2 = substr(f[i], 9) + 0 }
+		}
+		# поток считаем tor-овым, если он идёт на порт tor или приходит с него
+		if (dport != 9040 && dport != 9053 && sport2 != 9040 && sport2 != 9053) next
+		# клиент = источник исходного направления (устройство в сети)
+		if (src == "" || src == "127.0.0.1" || src ~ /^192\.168\.200\.1$/) next
+		key = src "|" dst "|" sport "|" dport
+		if (!(key in seen)) { seen[key] = 0; seenp[key] = 0; order[++cnt] = key }
+		bytes = b1 + b2
+		packets = p1 + p2
+		# делим трафик: DNS — к порту 53/9053, остальное — TCP
+		if (dport == 53 || sport2 == 9053) kind = "dns"; else kind = "tcp"
+		if (bytes > seen[key]) {
+			d = bytes - seen[key]
+			totals[src] = totals[src] + d
+			if (kind == "dns") dnst[src] = dnst[src] + d; else tcpt[src] = tcpt[src] + d
+			seen[key] = bytes
+		}
+		if (packets > seenp[key]) {
+			d = packets - seenp[key]
+			totp[src] = totp[src] + d
+			if (kind == "dns") dnsp[src] = dnsp[src] + d; else tcpk[src] = tcpk[src] + d
+			seenp[key] = packets
+		}
+	}
+	END {
+		# сохраняем состояние (максимум по каждому потоку)
+		tmp = state ".tmp"
+		start = (cnt > 2000) ? cnt - 2000 : 1
+		for (i = start; i <= cnt; i++)
+			printf("%s %d %d\n", order[i], seen[order[i]], seenp[order[i]]) > tmp
+		for (c in totals) printf("TOTAL %s %d %d %d %d %d %d\n", c, totals[c], totp[c], dnst[c], dnsp[c], tcpt[c], tcpk[c]) > tmp
+		close(tmp)
+		system("mv " tmp " " state)
+		for (c in totals) printf("%s %d %d %d %d %d %d\n", c, totals[c], totp[c], dnst[c], dnsp[c], tcpt[c], tcpk[c])
+	}
+	' /proc/net/nf_conntrack
+}
+
+esc() {
+	printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\r//g' | tr '\n\t' '  '
+}
+
+# --- разбор конфига tor -----------------------------------------------------
+
+# Печатает содержимое torrc с развёрнутыми %include
+read_effective() {
+	[ -f "$1" ] || return 0
+	_depth="${2:-0}"
+	[ "$_depth" -gt 4 ] && return 0
+	while IFS= read -r _line; do
+		case "$_line" in
+		'%include '*)
+			_inc="${_line#%include }"
+			_inc=$(printf '%s' "$_inc" | sed -e 's/[[:space:]]*$//' -e 's/^[[:space:]]*//')
+			[ -n "$_inc" ] && read_effective "$_inc" $((_depth + 1))
+			;;
+		*)
+			printf '%s\n' "$_line"
+			;;
+		esac
+	done < "$1"
+}
+
+# Значение опции UCI (пустая строка, если нет)
+uget() {
+	uci -q get "$1" 2>/dev/null
+}
+
+# Список bridge-строк из эффективного конфига
+bridge_lines() {
+	read_effective "$TORRC_GEN" 0 | sed -n 's/^[[:space:]]*Bridge[[:space:]]\{1,\}\(.*\)/\1/p'
+}
+
+# Тип моста по строке Bridge
+bridge_type() {
+	case "$1" in
+	obfs4*) echo "obfs4" ;;
+	snowflake*) echo "snowflake" ;;
+	meek-azure*) echo "meek-azure" ;;
+	obfs4proxy*) echo "obfs4proxy" ;;
+	*) echo "vanilla" ;;
+	esac
+}
+
+# Значение опции из строки Bridge (fingerprint=..., url=...)
+bridge_opt() {
+	printf '%s' "$1" | tr ' ' '\n' | sed -n "s/^$2=//p" | head -1
+}
+
+# Статистика по guard'ам из state-файла tor: для каждого моста —
+# сколько раз его использовали, сколько попыток построения цепочек удалось,
+# и числится ли он в текущем консенсусе.
+guard_stats() {
+	[ -r "$TOR_STATE" ] || return 0
+	grep -a "^Guard " "$TOR_STATE" 2>/dev/null | awk '
+	{
+		addr = ""; rsa = ""; listed = "1"; ua = 0; us = 0; ca = 0; cs = 0; conf = ""
+		for (i = 1; i <= NF; i++) {
+			if ($i ~ /^bridge_addr=/) addr = substr($i, 13)
+			else if ($i ~ /^rsa_id=/) rsa = substr($i, 8)
+			else if ($i ~ /^listed=/) listed = substr($i, 8)
+			else if ($i ~ /^pb_use_attempts=/) ua = substr($i, 17) + 0
+			else if ($i ~ /^pb_use_successes=/) us = substr($i, 18) + 0
+			else if ($i ~ /^pb_circ_attempts=/) ca = substr($i, 17) + 0
+			else if ($i ~ /^pb_circ_successes=/) cs = substr($i, 18) + 0
+			else if ($i ~ /^confirmed_on=/) conf = substr($i, 14)
+		}
+		printf "%s|%s|%s|%d|%d|%d|%d|%s\n", rsa, addr, listed, ua, us, ca, cs, conf
+	}'
+}
+
+json_bridges() {
+	_stats=$(guard_stats)
+	_first=1
+	_seen=""
+	bridge_lines | while IFS= read -r _b; do
+		[ -n "$_b" ] || continue
+		_t=$(bridge_type "$_b")
+		_addr=$(printf '%s' "$_b" | awk '{print $2}')
+		_fp=$(bridge_opt "$_b" fingerprint)
+		_url=$(bridge_opt "$_b" url)
+		# один и тот же мост может быть прописан и в /etc/tor/torrc, и в
+		# /etc/tor/torrc_bridges — в списке показываем его один раз
+		_key="$_addr|$_fp"
+		case "|$_seen|" in
+		*"|$_key|"*) continue ;;
+		esac
+		_seen="$_seen|$_key"
+		[ "$_first" = 1 ] || printf ','
+		_first=0
+		# ищем статистику по этому мосту (по fingerprint=rsa_id или по адресу)
+		_use=0; _succ=0; _ca=0; _cs=0; _listed="1"; _conf=""
+		printf '%s\n' "$_stats" | while IFS='|' read -r _rsa _gaddr _listed _ua _us _ca _cs _conf; do
+			[ -n "$_rsa" ] || continue
+			if { [ -n "$_fp" ] && [ "$_rsa" = "$_fp" ]; } || { [ -n "$_gaddr" ] && [ "${_gaddr%%:*}" = "${_addr%%:*}" ]; }; then
+				printf "%s;%s;%s;%s;%s;%s;%s" "$_listed" "$_ua" "$_us" "$_ca" "$_cs" "$_conf" "$_gaddr"
+			fi
+		done > /tmp/tor_guard_match.$$
+		if [ -s /tmp/tor_guard_match.$$ ]; then
+			IFS=';' read -r _listed _ua _us _ca _cs _conf _gaddr < /tmp/tor_guard_match.$$
+		fi
+		rm -f /tmp/tor_guard_match.$$
+		printf '{"type":"%s","line":"%s","addr":"%s","fingerprint":"%s","url":"%s","listed":%s,"use_attempts":%s,"use_successes":%s,"circ_attempts":%s,"circ_successes":%s,"confirmed":"%s"}' \
+			"$(esc "$_t")" "$(esc "$_b")" "$(esc "$_addr")" "$(esc "$_fp")" "$(esc "$_url")" \
+			"$_listed" "${_ua:-0}" "${_us:-0}" "${_ca:-0}" "${_cs:-0}" "$(esc "$_conf")"
+	done
+}
+
+# --- проверка доступности моста -----------------------------------------------
+#
+# Проверяем, что до адреса моста доходит TCP-соединение (curl: 7/28 — не достучались,
+# иначе соединение установлено) и заодно отвечает ли адрес по ICMP.
+do_test_bridge() {
+	# rpcd передаёт параметры метода в stdin (JSON-объект)
+	_params=$(cat 2>/dev/null)
+	_addr=$(printf '%s' "$_params" | jsonfilter -e '@.address' 2>/dev/null)
+	_url=$(printf '%s' "$_params" | jsonfilter -e '@.url' 2>/dev/null)
+	# у snowflake/meek реальная точка соединения — брокер из url=, а не адрес из дескриптора
+	if [ -n "$_url" ]; then
+		_host=$(printf '%s' "$_url" | sed -e 's|^[a-zA-Z]*://||' -e 's|/.*$||' -e 's|:[0-9]*$||')
+		_port=443
+	else
+		_host=$(printf '%s' "$_addr" | cut -d: -f1)
+		_port=$(printf '%s' "$_addr" | cut -d: -f2)
+	fi
+	_endpoint="$_host:$_port"
+	if [ -z "$_host" ] || [ -z "$_port" ]; then
+		printf '{"status":"error","message":"invalid address"}'
+		return 0
+	fi
+	curl -s -o /dev/null --connect-timeout 5 --max-time 8 -w '%{time_connect}' \
+		"http://$_host:$_port/" 2>/dev/null > /tmp/tor_probe_ms.$$
+	_rc=$?
+	case "$_rc" in
+	7|28) _tcp=false ;;
+	*) _tcp=true ;;
+	esac
+	_ms=$(awk '{ d=$1*1000; printf "%d", (d-int(d)>=0.5)?int(d)+1:int(d) }' /tmp/tor_probe_ms.$$ 2>/dev/null)
+	[ -n "$_ms" ] || _ms=0
+	rm -f /tmp/tor_probe_ms.$$
+	_ping=false
+	ping -c 2 -W 2 "$_host" >/dev/null 2>&1 && _ping=true
+	printf '{"status":"%s","address":"%s","endpoint":"%s","code":%s,"tcp":%s,"ping":%s,"ms":%s}' \
+		"$([ "$_tcp" = true ] && echo ok || echo fail)" "$(esc "$_addr")" "$(esc "$_endpoint")" "$_rc" \
+		"$_tcp" "$_ping" "$_ms"
+}
+
+# --- мониторинг мостов ---------------------------------------------------------
+#
+# Фоновый наблюдатель /usr/bin/tor-bridge-mon пишет состояние в
+# /tmp/tor_pro_bridge_mon.state (sec|ts|ok|ms|okc|totc|addr). Этот метод
+# объединяет его данные со списком мостов из UCI.
+
+do_bridge_mon() {
+	_watch=false
+	pgrep -f tor-bridge-mon >/dev/null 2>&1 && _watch=true
+	_tmp=/tmp/tor_bridge_mon.$$
+	: > "$_tmp"
+	uci -q show tor_pro 2>/dev/null | grep '=bridge$' | sed 's/=bridge$//; s/^tor_pro\.//' |
+	while read -r _sec; do
+		[ -n "$_sec" ] || continue
+		_en=$(uget "tor_pro.$_sec.enabled"); [ "$_en" = "1" ] || _en=0
+		_type=$(uget "tor_pro.$_sec.type"); [ -n "$_type" ] || _type="vanilla"
+		_addr=$(uget "tor_pro.$_sec.addr")
+		_line=$(uget "tor_pro.$_sec.line")
+		case "$_line" in
+		obfs4*) [ -z "$_addr" ] && _addr=$(printf '%s' "$_line" | awk '{print $2}') ;;
+		snowflake*|meek*) : ;;
+		*) [ -z "$_addr" ] && _addr=$(printf '%s' "$_line" | awk '{print $1}') ;;
+		esac
+		# вывод строки Bridge для отображения качеств
+		_fp=$(uget "tor_pro.$_sec.fingerprint")
+		_url=$(uget "tor_pro.$_sec.url"); _comment=$(uget "tor_pro.$_sec.comment")
+		# данные наблюдателя
+		_ok=""; _ms=0; _ts2=0; _okc=0; _totc=0
+		if [ -s /tmp/tor_pro_bridge_mon.state ]; then
+			_row=$(grep -a "^${_sec}|" /tmp/tor_pro_bridge_mon.state 2>/dev/null | head -1)
+			IFS='|' read -r _s _ts2 _ok _ms _okc _totc _a3 <<EOF
+$_row
+EOF
+		fi
+		if [ -s "$_tmp" ]; then printf ',' >> "$_tmp"; fi
+		printf '{"sec":"%s","enabled":%s,"type":"%s","addr":"%s","fp":"%s","url":"%s","comment":"%s","ok":%s,"ms":%s,"ts":%s,"okc":%s,"totc":%s}' \
+			"$(esc "$_sec")" "$_en" "$(esc "$_type")" "$(esc "$_addr")" "$(esc "$_fp")" "$(esc "$_url")" "$(esc "$_comment")" \
+			"$([ "$_ok" = "1" ] && echo true || { [ "$_ok" = "0" ] && echo false || echo null; })" \
+			"${_ms:-0}" "$((_ts2 + 0))" "$((_okc + 0))" "$((_totc + 0))" >> "$_tmp"
+	done
+	printf '{"watcher":%s,"bridges":[' "$_watch"
+	cat "$_tmp" 2>/dev/null
+	printf ']}'
+	rm -f "$_tmp"
+}
+
+# мгновенный прогон наблюдателя
+do_bridge_mon_now() {
+	: > /tmp/tor_pro_bridge_mon.now
+	printf '{"status":"ok"}'
+}
+
+# --- трафик (лёгкий метод для быстрого обновления графика) ---------------------
+#
+# Возвращает только счётчики conntrack — без статуса tor, клиентов и мостов.
+# График на вкладке «Статус» опрашивает его раз в ~1,5 c, полный status
+# остаётся на обычном интервале обновления страницы.
+
+do_traffic() {
+	_ct=$(ct_accounting | awk '{ b += $2; p += $3; db += $4; dp += $5; tb += $6; tp += $7 }
+		END { printf "%d %d %d %d %d %d", b, p, db, dp, tb, tp }')
+	set -- $_ct
+	printf '{"bytes":%s,"packets":%s,"dns_bytes":%s,"dns_packets":%s,"tcp_bytes":%s,"tcp_packets":%s}' \
+		"${1:-0}" "${2:-0}" "${3:-0}" "${4:-0}" "${5:-0}" "${6:-0}"
+}
+
+# --- статус -----------------------------------------------------------------
+
+service_running() {
+	_s=$(ubus call service list "{\"name\":\"$1\"}" 2>/dev/null)
+	[ -n "$_s" ] || { echo 0; return; }
+	printf '%s' "$_s" | jsonfilter -e '@.'"$1"'.instances.*.running' 2>/dev/null
+}
+
+service_pid() {
+	_s=$(ubus call service list "{\"name\":\"$1\"}" 2>/dev/null)
+	[ -n "$_s" ] || return
+	printf '%s' "$_s" | jsonfilter -e '@.'"$1"'.instances.*.pid' 2>/dev/null
+}
+
+# Аптайм процесса в секундах
+proc_uptime() {
+	_pid="$1"
+	[ -n "$_pid" ] || { echo 0; return; }
+	[ -r "/proc/$_pid/stat" ] || { echo 0; return; }
+	_st=$(cut -d' ' -f22 "/proc/$_pid/stat" 2>/dev/null)
+	[ -n "$_st" ] || { echo 0; return; }
+	_up=$(cut -d' ' -f1 /proc/uptime 2>/dev/null)
+	awk -v s="$_st" -v u="$_up" 'BEGIN { printf "%d", (u - s/100) }'
+}
+
+# Процент бутстрапа: берём из последних строк лога, но запоминаем
+# найденное значение по PID tor — лог быстро забивается дескрипторами
+# мостов, и строка Bootstrapped выпадает из окна чтения (тогда «—»).
+# Имя файла с PID: при рестарте tor кэш автоматически обнуляется.
+bootstrap_pct() {
+	local _p="${1:-}"
+	local f=/tmp/tor_pro_boot.$_p
+	local v
+	v=$(logread 2>/dev/null | tail -n 300 | grep -a "Bootstrapped" | tail -1 |
+		sed -n 's/.*Bootstrapped \([0-9]*\)%.*/\1/p')
+	if [ -n "$v" ]; then
+		{ [ "$(cat "$f" 2>/dev/null)" = "$v" ] || printf '%s' "$v" > "$f"; }
+	elif [ -s "$f" ]; then
+		v=$(cat "$f" 2>/dev/null)
+	fi
+	[ -n "$v" ] && printf '%s' "$v"
+	# мусорные кэши от прошлых PID вычищаем
+	ls /tmp/tor_pro_boot.* >/dev/null 2>&1 || return 0
+	for _b in /tmp/tor_pro_boot.*; do
+		[ "$_b" = "$f" ] || rm -f "$_b"
+	done
+}
+
+# Текущий guard (активный мост) из state-файла tor
+active_guard() {
+	[ -r "$TOR_STATE" ] || return
+	grep -a '^Guard ' "$TOR_STATE" 2>/dev/null | tail -1 |
+		sed -n 's/.*bridge_addr=\([^ ]*\).*/\1/p'
+}
+
+# Счётчики правил dstnat_tor: "tcp_bytes tcp_packets dns_bytes dns_packets"
+tor_rule_counters() {
+	nft list chain inet fw4 dstnat_tor 2>/dev/null | awk '
+		/comment "Tor TCP"/ { for (i=1;i<=NF;i++) { if ($i=="packets") p=$(i+1); if ($i=="bytes") b=$(i+1) } tcpb=b; tcpp=p }
+		/comment "Tor DNS"/ { for (i=1;i<=NF;i++) { if ($i=="packets") p=$(i+1); if ($i=="bytes") b=$(i+1) } dnsb=b; dnsp=p }
+		END { printf "%d %d %d %d", tcpb+0, tcpp+0, dnsb+0, dnsp+0 }'
+}
+
+do_status() {
+	_run=$(service_running tor)
+	_pid=$(service_pid tor)
+	[ -n "$_run" ] || _run=false
+	[ "$_run" = "true" ] || _pid=""
+	_up=$(proc_uptime "$_pid")
+	_boot=$(bootstrap_pct "$_pid")
+	_guard=$(active_guard)
+	_counters=$(tor_rule_counters)
+	set -- $_counters
+	_tcpb=${1:-0}
+	_tcpp=${2:-0}
+	_dnsb=${3:-0}
+	_dnsp=${4:-0}
+
+	# реальный объём трафика через tor берём из per-device счётчиков
+	# (счётчики правил fw4 считают только первые пакеты соединения)
+	_traf=$(nft list counters inet "$MON_TABLE" 2>/dev/null | awk '
+		/^[[:space:]]*counter / { name = $2 }
+		/^[[:space:]]*packets / { p += $2; b += $4 }
+		END { printf "%d %d", p, b }')
+	set -- $_traf
+	_tbytes=${1:-0}
+	_tpackets=${2:-0}
+
+	# реальный объём трафика через tor берём из conntrack (nft-счётчики
+	# байты не показывают — их забирает учёт conntrack)
+	_ct=$(ct_accounting | awk '{ b += $2; p += $3; db += $4; dp += $5; tb += $6; tp += $7 }
+		END { printf "%d %d %d %d %d %d", b, p, db, dp, tb, tp }')
+	set -- $_ct
+	_tbytes=${1:-0}
+	_tpackets=${2:-0}
+	_dnsbytes=${3:-0}
+	_dnspackets=${4:-0}
+	_tcpbytes=${5:-0}
+	_tcppackets=${6:-0}
+
+	printf '{'
+	printf '"tor":{"running":%s,"pid":"%s","uptime":%s,"bootstrap":"%s","guard":"%s"},' \
+		"$_run" "$(esc "$_pid")" "${_up:-0}" "$(esc "$_boot")" "$(esc "$_guard")"
+	printf '"clients":%s,' "$(uci -q show tor_pro 2>/dev/null | grep -c '=client$')"
+	printf '"traffic":{"bytes":%s,"packets":%s,"dns_bytes":%s,"dns_packets":%s,"tcp_bytes":%s,"tcp_packets":%s},' \
+		"$_tbytes" "$_tpackets" "$_dnsbytes" "$_dnspackets" "$_tcpbytes" "$_tcppackets"
+	printf '"connections":{"tcp_bytes":%s,"tcp_packets":%s,"dns_bytes":%s,"dns_packets":%s},' \
+		"$_tcpb" "$_tcpp" "$_dnsb" "$_dnsp"
+	printf '"bridges":['
+	json_bridges
+	printf '],'
+	printf '"use_bridges":%s' \
+		"$(read_effective "$TORRC_GEN" 0 | grep -q '^[[:space:]]*UseBridges' && echo true || echo false)"
+	printf '}'
+}
+
+# --- конфигурация ------------------------------------------------------------
+
+do_config() {
+	_eff=$(read_effective "$TORRC_GEN" 0)
+	_socks=$(printf '%s' "$_eff" | sed -n 's/^[[:space:]]*SocksPort[[:space:]]\{1,\}\(.*\)/\1/p' | head -1)
+	_trans=$(printf '%s' "$_eff" | sed -n 's/^[[:space:]]*TransPort[[:space:]]\{1,\}\(.*\)/\1/p' | head -1)
+	_dns=$(printf '%s' "$_eff" | sed -n 's/^[[:space:]]*DNSPort[[:space:]]\{1,\}\(.*\)/\1/p' | head -1)
+	_ddir=$(printf '%s' "$_eff" | sed -n 's/^[[:space:]]*DataDirectory[[:space:]]\{1,\}\(.*\)/\1/p' | head -1)
+	_plugins=$(printf '%s' "$_eff" | sed -n 's/^[[:space:]]*ClientTransportPlugin[[:space:]]\{1,\}\(.*\)/\1/p' | head -1)
+	_incl=$(printf '%s' "$_eff" | sed -n 's/^[[:space:]]*%include[[:space:]]\{1,\}\(.*\)/\1/p')
+
+	printf '{'
+	printf '"socks_port":"%s","trans_port":"%s","dns_port":"%s","data_directory":"%s",' \
+		"$(esc "$_socks")" "$(esc "$_trans")" "$(esc "$_dns")" "$(esc "$_ddir")"
+	printf '"plugin":"%s",' "$(esc "$_plugins")"
+	printf '"includes":['
+	_first=1
+	for _i in $_incl; do
+		[ "$_first" = 1 ] || printf ','
+		_first=0
+		printf '{"path":"%s","exists":%s}' "$(esc "$_i")" \
+			"$([ -f "$_i" ] && echo true || echo false)"
+	done
+	printf '],'
+	printf '"torrc":"%s","generated":"%s","torrc_exists":%s,"generated_exists":%s,' \
+		"$(esc "$TORRC")" "$(esc "$TORRC_GEN")" \
+		"$([ -f "$TORRC" ] && echo true || echo false)" \
+		"$([ -f "$TORRC_GEN" ] && echo true || echo false)"
+	printf '"uci":{'
+	printf '"default":"%s","generated":"%s",' \
+		"$(esc "$(uget tor.conf.default)")" "$(esc "$(uget tor.conf.generated)")"
+	printf '"head_include":['
+	_first=1
+	for _h in $(uget tor.conf.head_include); do
+		[ "$_first" = 1 ] || printf ','
+		_first=0
+		printf '"%s"' "$(esc "$_h")"
+	done
+	printf '],"tail_include":['
+	_first=1
+	for _t in $(uget tor.conf.tail_include); do
+		[ "$_first" = 1 ] || printf ','
+		_first=0
+		printf '"%s"' "$(esc "$_t")"
+	done
+	printf ']},'
+	printf '"pro":{'
+	printf '"refresh":"%s","monitor_enabled":"%s","use_vanilla":"%s","use_obfs4":"%s","use_snowflake":"%s","use_meek_azure":"%s","log_lines":"%s","bridge_mon_enabled":"%s","bridge_mon_interval":"%s"' \
+		"$(esc "$(uget tor_pro.settings.refresh)")" \
+		"$(esc "$(uget tor_pro.settings.monitor_enabled)")" \
+		"$(esc "$(uget tor_pro.settings.use_vanilla)")" \
+		"$(esc "$(uget tor_pro.settings.use_obfs4)")" \
+		"$(esc "$(uget tor_pro.settings.use_snowflake)")" \
+		"$(esc "$(uget tor_pro.settings.use_meek_azure)")" \
+		"$(esc "$(uget tor_pro.settings.log_lines)")" \
+		"$(esc "$(uget tor_pro.settings.bridge_mon_enabled)")" \
+		"$(esc "$(uget tor_pro.settings.bridge_mon_interval)")"
+	printf '}}'
+}
+
+# --- устройства и клиенты ----------------------------------------------------
+
+# Секция ipset с именем $IPSET_NAME (в конфиге firewall она анонимная: @ipset[0])
+ipset_section() {
+	uci -q show firewall 2>/dev/null |
+		sed -n "s/^firewall\.\(@[a-z_]*\[[0-9]*\]\)=ipset$/\1/p" |
+		while read -r _s; do
+			[ "$(uci -q get "firewall.$_s.name" 2>/dev/null)" = "$IPSET_NAME" ] && { echo "$_s"; break; }
+		done
+}
+
+# Текущие элементы ipset tor_clients из конфига firewall
+tor_clients() {
+	_sec=$(ipset_section)
+	[ -n "$_sec" ] || return 0
+	# uci get отдаёт list-опцию как строку через пробел
+	uci -q get "firewall.$_sec.entry" 2>/dev/null
+}
+
+# Импорт текущего списка клиентов в tor_pro.
+# Выполняется только когда в tor_pro ещё нет секций client: дальше источником
+# истины остаётся интерфейс (иначе удалённый в UI клиент вернулся бы обратно
+# из ipset при следующем применении).
+import_clients() {
+	_n=$(uci -q show tor_pro 2>/dev/null | grep -c '=client$')
+	[ "$_n" -gt 0 ] && return 0
+	_i=0
+	for _ip in $(tor_clients); do
+		[ -n "$_ip" ] || continue
+		_i=$((_i + 1))
+		uci -q set "tor_pro.c${_i}=client" 2>/dev/null
+		uci -q set "tor_pro.c${_i}.ip=$_ip" 2>/dev/null
+		uci -q set "tor_pro.c${_i}.enabled=1" 2>/dev/null
+	done
+	[ "$_i" -gt 0 ] && uci -q commit tor_pro 2>/dev/null
+	return 0
+}
+
+# Хостнейм по MAC из таблицы ARP/leases
+json_devices() {
+	_ips=$(tor_clients)
+	_first=1
+	printf '['
+	# сначала DHCP-клиенты
+	if [ -r "$DHCP_LEASES" ]; then
+		while read -r _exp _mac _ip _host _id; do
+			[ -n "$_ip" ] || continue
+			_in=0
+			for _c in $_ips; do
+				[ "$_c" = "$_ip" ] && _in=1
+			done
+			[ "$_first" = 1 ] || printf ','
+			_first=0
+			printf '{"ip":"%s","mac":"%s","name":"%s","dhcp":true,"in_tor":%s}' \
+				"$(esc "$_ip")" "$(esc "$_mac")" "$(esc "$_host")" \
+				"$([ "$_in" = 1 ] && echo true || echo false)"
+		done < "$DHCP_LEASES"
+	fi
+	# затем клиенты tor, которых нет в DHCP
+	for _c in $_ips; do
+		_found=0
+		if [ -r "$DHCP_LEASES" ]; then
+			while read -r _exp _mac _ip _host _id; do
+				[ "$_ip" = "$_c" ] && _found=1
+			done < "$DHCP_LEASES"
+		fi
+		[ "$_found" = 1 ] && continue
+		[ "$_first" = 1 ] || printf ','
+		_first=0
+		printf '{"ip":"%s","mac":"","name":"","dhcp":false,"in_tor":true}' "$(esc "$_c")"
+	done
+	printf ']'
+}
+
+do_devices() {
+	import_clients
+	printf '{'
+	printf '"devices":'
+	json_devices
+	printf ','
+	printf '"tor_clients":['
+	_first=1
+	for _c in $(tor_clients); do
+		[ "$_first" = 1 ] || printf ','
+		_first=0
+		printf '"%s"' "$(esc "$_c")"
+	done
+	printf '],'
+	printf '"dhcp_leases":"%s"' "$(esc "$DHCP_LEASES")"
+	printf '}'
+}
+
+# --- мониторинг --------------------------------------------------------------
+
+# Пересоздаёт nft-таблицу с per-device счётчиками для клиентов tor
+apply_monitor_table() {
+	nft delete table inet "$MON_TABLE" 2>/dev/null
+	nft add table inet "$MON_TABLE" 2>/dev/null || return 1
+	# цепочка input: сюда реально доставляются перенаправленные в tor пакеты
+	# (в prerouting повторно не попадают — fast path conntrack после DNAT)
+	nft add chain inet "$MON_TABLE" "$MON_CHAIN" \
+		"{ type filter hook input priority filter - 2; policy accept; }" 2>/dev/null || return 1
+	# цепочка forward: killswitch — блокировка трафика мимо tor
+	nft add chain inet "$MON_TABLE" forward \
+		"{ type filter hook forward priority filter - 5; policy accept; }" 2>/dev/null
+	_seen=""
+	for _sec in $(uci -q show tor_pro 2>/dev/null | grep '=client$' | cut -d= -f1 | cut -d. -f2); do
+		[ "$(uci -q get "tor_pro.$_sec.enabled" 2>/dev/null)" = "1" ] || continue
+		_ip=$(uci -q get "tor_pro.$_sec.ip" 2>/dev/null)
+		# счётчики только для адресов, подсети в ipset не разворачиваем
+		case "$_ip" in
+		*/*|'') continue ;;
+		esac
+		# один счётчик на адрес, даже если клиент продублирован
+		case " $_seen " in
+		*" $_ip "*) continue ;;
+		esac
+		_seen="$_seen $_ip"
+		_name=$(printf '%s' "$_ip" | tr '.' '_')
+		nft add counter inet "$MON_TABLE" "dev_$_name" 2>/dev/null
+		# TCP-трафик в TransPort и DNS в DNSPort
+		nft add rule inet "$MON_TABLE" "$MON_CHAIN" ip saddr "$_ip" tcp dport 9040 \
+			counter name "dev_$_name" 2>/dev/null
+		nft add rule inet "$MON_TABLE" "$MON_CHAIN" ip saddr "$_ip" udp dport 9053 \
+			counter name "dev_$_name" 2>/dev/null
+		# killswitch: всё, что не уходит в tor, — отбрасываем
+		if [ "$(uci -q get "tor_pro.$_sec.killswitch" 2>/dev/null)" = "1" ]; then
+			nft add rule inet "$MON_TABLE" forward ip saddr "$_ip" \
+				ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } \
+				udp dport != 53 drop comment "killswitch $_ip" 2>/dev/null
+			nft add rule inet "$MON_TABLE" forward ip saddr "$_ip" \
+				ip daddr != { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } \
+				tcp dport 53 drop comment "killswitch $_ip" 2>/dev/null
+		fi
+	done
+	return 0
+}
+
+do_monitor() {
+	# пакеты — из nft-счётчиков (монотонные), байты — из conntrack
+	_pkts=$(nft list counters inet "$MON_TABLE" 2>/dev/null | awk '
+		/^[[:space:]]*counter / {
+			name = $2; gsub(/[{"]/, "", name); sub(/^dev_/, "", name); gsub(/_/, ".", name)
+		}
+		/^[[:space:]]*packets / { printf "%s %s\n", name, $2 }')
+
+	_bytes=$(ct_accounting)
+
+	_devices=$(printf '%s\n%s\n' "$_pkts" "$_bytes" | awk -v leases="$DHCP_LEASES" '
+		BEGIN {
+			while ((getline line < leases) > 0) {
+				split(line, f, " ")
+				if (f[3] != "") names[f[3]] = f[4]
+			}
+			close(leases)
+		}
+		NF >= 2 && $1 != "" {
+			if (NF == 2) pkts[$1] = $2
+			if (NF >= 3) { bytes[$1] = $2; dnsb[$1] = $4 }
+			if (!($1 in seen)) { seen[$1] = 1; order[++n] = $1 }
+			next
+		}
+		END {
+			first = 1
+			for (i = 1; i <= n; i++) {
+				ip = order[i]
+				if (first == 0) printf ","
+				first = 0
+				printf "{\"ip\":\"%s\",\"name\":\"%s\",\"packets\":%s,\"bytes\":%s,\"dns_bytes\":%s}", \
+					ip, names[ip], pkts[ip] + 0, bytes[ip] + 0, dnsb[ip] + 0
+			}
+		}')
+
+	printf '{'
+	printf '"devices":[%s],' "$_devices"
+	printf '"available":%s' \
+		"$(nft list counters inet "$MON_TABLE" >/dev/null 2>&1 && echo true || echo false)"
+	printf '}'
+}
+
+
+# --- пакеты -------------------------------------------------------------------
+
+PKG_LIST="tor firewall4 nftables-json snowflake-client obfs4proxy"
+
+do_packages() {
+	printf '{'
+	_first=1
+	for _p in $PKG_LIST; do
+		_ver=$(apk list --installed 2>/dev/null | grep -E "^${_p}-[0-9]" | head -1 | sed -E "s/^${_p}-//; s/ .*//")
+		[ "$_first" = 1 ] || printf ','
+		_first=0
+		printf '"%s":{"installed":%s,"version":"%s"}' "$_p" \
+			"$([ -n "$_ver" ] && echo true || echo false)" "$(esc "$_ver")"
+	done
+	printf '}'
+}
+
+# какие пакеты нужны для каждого типа моста
+do_bridge_types() {
+	printf '{'
+	printf '"vanilla":{"package":"","installed":true},'
+	printf '"obfs4":{"package":"obfs4proxy","installed":%s},' \
+		"$(apk list --installed 2>/dev/null | grep -qE '^obfs4proxy-[0-9]' && echo true || echo false)"
+	printf '"snowflake":{"package":"snowflake-client","installed":%s},' \
+		"$(apk list --installed 2>/dev/null | grep -qE '^snowflake-client-[0-9]' && echo true || echo false)"
+	printf '"meek-azure":{"package":"","installed":true}'
+	printf '}'
+}
+
+do_install_package() {
+	_p="$1"
+	case "$_p" in
+	tor|firewall4|nftables-json|snowflake-client|obfs4proxy) ;;
+	*) printf '{"status":"error","message":"unknown package"}'; return 0 ;;
+	esac
+	_out=$(apk add "$_p" 2>&1)
+	if [ $? -eq 0 ]; then
+		printf '{"status":"ok","package":"%s"}' "$_p"
+	else
+		printf '{"status":"error","package":"%s","message":"%s"}' "$_p" "$(esc "$_out")"
+	fi
+}
+
+# --- назначения (кто куда ходит через tor) -------------------------------------
+
+do_destinations() {
+	if [ ! -f "$CT_STATE" ]; then
+		printf '{"destinations":[]}'
+		return 0
+	fi
+	printf '{"destinations":['
+	awk '
+		$1 == "TOTAL" { next }
+		{
+			n = split($1, f, "|")
+			if (n < 4) next
+			ip = f[1]; dst = f[2]; dport = f[4]
+			key = ip "|" dst
+			if (!(key in seen)) { seen[key] = 1; order[++c] = key }
+			agg[key] = agg[key] + ($2 + 0)
+			aggp[key] = aggp[key] + ($3 + 0)
+			sport[key] = dport
+		}
+		END {
+			first = 1
+			for (i = 1; i <= c; i++) {
+				k = order[i]
+				split(k, p, "|")
+				if (first == 0) printf ","
+				first = 0
+				printf "{\"ip\":\"%s\",\"dst\":\"%s\",\"port\":\"%s\",\"bytes\":%d,\"packets\":%d}", \
+					p[1], p[2], sport[k], agg[k], aggp[k]
+			}
+		}
+	' "$CT_STATE"
+	printf ']}'
+}
+
+# --- применение настроек -----------------------------------------------------
+
+do_apply_bridges() {
+	# собираем строки Bridge из параметров каждого моста
+	{
+		echo "## Generated by luci-app-tor, do not edit"
+		uci -q show tor_pro 2>/dev/null | grep "=bridge$" | cut -d= -f1 | cut -d. -f2 | while read -r _sec; do
+			_en=$(uci -q get "tor_pro.$_sec.enabled" 2>/dev/null)
+			[ "$_en" = "1" ] || continue
+			_type=$(uci -q get "tor_pro.$_sec.type" 2>/dev/null)
+			[ -n "$_type" ] || _type="vanilla"
+			_addr=$(uci -q get "tor_pro.$_sec.addr" 2>/dev/null)
+			_fp=$(uci -q get "tor_pro.$_sec.fingerprint" 2>/dev/null)
+			_url=$(uci -q get "tor_pro.$_sec.url" 2>/dev/null)
+			_ice=$(uci -q get "tor_pro.$_sec.ice" 2>/dev/null)
+			_line=$(uci -q get "tor_pro.$_sec.line" 2>/dev/null)
+
+			if [ -n "$_addr" ]; then
+				_cert=$(uci -q get "tor_pro.$_sec.cert" 2>/dev/null)
+				_iat=$(uci -q get "tor_pro.$_sec.iat" 2>/dev/null)
+				case "$_type" in
+				obfs4)
+					_line="obfs4 $_addr $_fp"
+					[ -n "$_cert" ] && _line="$_line cert=$_cert"
+					[ -n "$_iat" ] && _line="$_line iat-mode=$_iat"
+					;;
+				snowflake)
+					_line="snowflake $_addr $_fp"
+					[ -n "$_url" ] && _line="$_line url=$_url"
+					[ -n "$_ice" ] && _line="$_line ice=$_ice"
+					;;
+				meek-azure)
+					_line="meek-azure $_addr"
+					[ -n "$_url" ] && _line="$_line url=$_url"
+					;;
+				*)
+					_line="$_addr"
+					[ -n "$_fp" ] && _line="$_line $_fp"
+					;;
+				esac
+			fi
+
+			# пустая строка — мост без адреса, пропускаем
+			[ -n "$_line" ] || continue
+			# произвольные доп. параметры (ampcache=, front=, utls-imitate= и т.п.)
+			_extra=$(uci -q get "tor_pro.$_sec.extra" 2>/dev/null)
+			[ -n "$_extra" ] && _line="$_line $_extra"
+			_c=$(uci -q get "tor_pro.$_sec.comment" 2>/dev/null)
+			if [ -n "$_c" ]; then
+				printf 'Bridge %s # %s\n' "$_line" "$_c"
+			else
+				printf 'Bridge %s\n' "$_line"
+			fi
+		done
+
+		# transport-плагины: tor требует ClientTransportPlugin для каждого
+		# используемого типа моста (иначе мосты молча игнорируются с warning
+		# «no configured transport»); в /etc/tor/torrc плагины уже могут быть
+		# прописаны — их не дублируем
+		for _s in $(uci -q show tor_pro 2>/dev/null | grep '=bridge$' | cut -d= -f1 | cut -d. -f2); do
+			[ "$(uci -q get "tor_pro.$_s.enabled" 2>/dev/null)" = "1" ] || continue
+			uci -q get "tor_pro.$_s.type" 2>/dev/null
+		done | sort -u | while read -r _t; do
+			case "$_t" in
+				obfs4) _bin=/usr/bin/obfs4proxy ;;
+				meek-azure|meek_lite|meek) _bin=/usr/bin/meek-client ;;
+				snowflake) _bin=/usr/bin/snowflake-client ;;
+				*) continue ;;
+			esac
+			[ -x "$_bin" ] || continue
+			grep -q "ClientTransportPlugin[[:space:]].*$_t" /etc/tor/torrc && continue
+			printf 'ClientTransportPlugin %s exec %s\n' "$_t" "$_bin"
+		done
+
+		# уникальное имя tmp: два одновременных apply иначе перемешивают
+		# содержимое одного и того же .tmp и портят итоговый файл
+		_tmp="$BRIDGES_FILE.tmp.$$"
+	} > "$_tmp" 2>/dev/null
+
+	mv "$_tmp" "$BRIDGES_FILE" 2>/dev/null
+	chmod 600 "$BRIDGES_FILE" 2>/dev/null
+
+	# подключаем файл мостов в конфиг tor
+	_have=0
+	for _t in $(uget tor.conf.tail_include); do
+		[ "$_t" = "$BRIDGES_FILE" ] && _have=1
+	done
+	[ "$_have" = 1 ] || {
+		uci -q add_list tor.conf.tail_include="$BRIDGES_FILE" 2>/dev/null
+		uci -q commit tor 2>/dev/null
+	}
+
+	# перезапуск tor
+	/etc/init.d/tor restart >/dev/null 2>&1
+	printf '{"status":"ok","bridges_file":"%s"}' "$(esc "$BRIDGES_FILE")"
+}
+
+do_apply_routing() {
+	# при первом применении подхватываем текущий список клиентов из firewall
+	import_clients
+
+	# список клиентов берём из tor_pro (секции типа client) и пишем в ipset firewall
+	_ips=""
+	for _sec in $(uci -q show tor_pro 2>/dev/null | grep '=client$' | cut -d= -f1 | cut -d. -f2); do
+		_en=$(uci -q get "tor_pro.$_sec.enabled" 2>/dev/null)
+		[ "$_en" = "1" ] || continue
+		_ip=$(uci -q get "tor_pro.$_sec.ip" 2>/dev/null)
+		[ -n "$_ip" ] || continue
+		_ips="$_ips $_ip"
+	done
+
+	# создаём/обновляем секцию ipset в firewall
+	cp /etc/config/firewall "$FW_BACKUP" 2>/dev/null
+	_sec=$(ipset_section)
+	if [ -z "$_sec" ]; then
+		# секции нет — создаём именованную
+		uci -q set "firewall.$IPSET_NAME=ipset" 2>/dev/null
+		uci -q set "firewall.$IPSET_NAME.name=$IPSET_NAME" 2>/dev/null
+		uci -q set "firewall.$IPSET_NAME.family=ipv4" 2>/dev/null
+		uci -q set "firewall.$IPSET_NAME.storage=hash" 2>/dev/null
+		_sec="$IPSET_NAME"
+	fi
+	# поддержка подсетей: match 'net' -> интервальный nft-set (принимает и IP, и CIDR)
+	uci -q delete "firewall.$_sec.match" 2>/dev/null
+	uci -q add_list "firewall.$_sec.match=net" 2>/dev/null
+	uci -q delete "firewall.$_sec.entry" 2>/dev/null
+	for _ip in $_ips; do
+		[ -n "$_ip" ] || continue
+		uci -q add_list "firewall.$_sec.entry=$_ip" 2>/dev/null
+	done
+	uci -q commit firewall 2>/dev/null
+
+	# страховка: если новый конфиг невалиден — откатываем
+	if ! fw4 print >/dev/null 2>&1; then
+		[ -f "$FW_BACKUP" ] && cp "$FW_BACKUP" /etc/config/firewall
+		fw4 reload >/dev/null 2>&1
+		printf '{"status":"error","reason":"invalid firewall configuration, reverted"}'
+		return 0
+	fi
+
+	# пересоздаём таблицу мониторинга под новый список
+	apply_monitor_table
+
+	# если живой set не имеет флага interval — пересоздаём таблицу fw4,
+	# иначе nft не даст сменить тип set при reload.
+	# элементы set'а fw4 при reload не очищаются, поэтому чистим их явно.
+	_live=$(nft list set inet fw4 "$IPSET_NAME" 2>/dev/null)
+	if [ -n "$_live" ]; then
+		case "$_live" in
+		*"flags interval"*) nft flush set inet fw4 "$IPSET_NAME" 2>/dev/null ;;
+		*) nft delete table inet fw4 2>/dev/null ;;
+		esac
+	fi
+
+	/etc/init.d/firewall reload >/dev/null 2>&1
+	printf '{"status":"ok","clients":%s}' "$(
+		_first=1
+		printf '['
+		for _ip in $_ips; do
+			[ "$_first" = 1 ] || printf ','
+			_first=0
+			printf '"%s"' "$(esc "$_ip")"
+		done
+		printf ']'
+	)"
+}
+
+do_apply_monitor() {
+	if apply_monitor_table; then
+		printf '{"status":"ok"}'
+	else
+		printf '{"status":"error"}'
+	fi
+}
+
+# --- диспетчер ----------------------------------------------------------------
+
+case "$1" in
+list)
+	echo '{ "status": {}, "config": {}, "devices": {}, "traffic": {}, "monitor": {}, "packages": {}, "bridge-types": {}, "destinations": {}, "test-bridge": {}, "bridge-mon": {}, "install-package": {}, "apply-bridges": {}, "apply-routing": {}, "apply-monitor": {} }'
+	;;
+call)
+	case "$2" in
+	status) do_status ;;
+	config) do_config ;;
+	devices) do_devices ;;
+	traffic) do_traffic ;;
+	monitor) do_monitor ;;
+	packages) do_packages ;;
+	test-bridge) do_test_bridge ;;
+	bridge-mon) do_bridge_mon ;;
+	bridge-mon-now) do_bridge_mon_now ;;
+	bridge-types) do_bridge_types ;;
+	install-package) do_install_package "$3" ;;
+	destinations) do_destinations ;;
+	apply-bridges) do_apply_bridges ;;
+	apply-routing) do_apply_routing ;;
+	apply-monitor) do_apply_monitor ;;
+	*) echo '{}' ;;
+	esac
+	;;
+*) echo '{}' ;;
+esac
