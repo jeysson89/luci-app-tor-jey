@@ -52,6 +52,36 @@ apk add --allow-untrusted luci-i18n-tor-ru-*.apk   # optional
 /etc/init.d/rpcd restart
 ```
 
+## Quick start on the router (terminal)
+
+Run directly on the device (SSH / serial terminal) as root:
+
+```sh
+# 1. Положите скрипт и apk-пакеты в одну папку на роутере (например /tmp)
+cd /tmp
+wget https://github.com/jeysson89/luci-app-tor-jey/raw/main/scripts/install_tor_jey_on_device.sh
+# или скопируйте скрипт с ПК: scp install_tor_jey_on_device.sh root@192.168.200.1:/tmp/
+
+# 2. Если ставите из локальных apk (сборка r14), положите их рядом:
+#    luci-app-tor-1.1.0-r14.apk  luci-i18n-tor-ru-*.apk
+
+# 3. Запустите
+sh install_tor_jey_on_device.sh
+```
+
+Что делает скрипт:
+
+- Проверяет, что установлено (`tor`, `luci-app-tor`, `luci-i18n-tor-ru`, `obfs4proxy`, `snowflake-client`)
+- Докачивает недостающие пакеты из локальных `*.apk` или из репозитория `apk`
+- Добавляет в `/etc/tor/torrc`: `UseBridges 1` и `ClientTransportPlugin snowflake`
+- Предлагает импортировать мосты из `good_bridges.txt` (или своего файла) в UCI `tor_pro.b1…bN`
+- Генерирует `/etc/tor/torrc_bridges` с `ClientTransportPlugin obfs4 exec /usr/bin/obfs4proxy`
+- Перезапускает `tor` и `rpcd`, ждёт `Bootstrap 100%`
+
+**Повторный запуск** спросит: «Удалить всё и хвосты (полная очистка)?» — ответ `y` удаляет пакеты, чистит `torrc_bridges`, сбрасывает UCI `tor_pro` и временные файлы.
+
+Открыть LuCI: `http://<ip-роутера>/cgi-bin/luci/admin/services/tor/bridges`
+
 ## RPC methods (`tor-pro-rpc`)
 
 `status`, `config`, `devices`, `traffic`, `monitor`, `packages`, `bridge-types`,
