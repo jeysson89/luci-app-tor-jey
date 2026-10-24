@@ -1,99 +1,70 @@
 # luci-app-tor-jey
 
-A fork of [luci-app-tor](https://github.com/openwrt/luci/tree/master/applications/luci-app-tor)
-for OpenWrt 25.12, extended with a bridge-monitoring and management UI.
-Built and tested on a Bazis AX3000WM (MediaTek MT7981, `mediatek/filogic`).
+LuCI-интерфейс для **Tor** на OpenWrt 25.12: управление мостами, мониторинг их доступности, маршрутизация клиентов через Tor и просмотр лога — всё в одной панели services.
 
-## Features
+---
 
-- **Status** — daemon state, uptime, bootstrap, guard, traffic graph, killswitch-aware routing.
-- **Bridges** (single tab, r8+): compact list of all configured bridges with
-  "used right now" badge for the active guard, availability, latency (ms) and
-  test/edit/remove actions; editing in a popup modal; background bridge
-  monitoring (observer, interval, "check now", "apply bridges").
-- **Routing** — Tor clients (IP/subnet), killswitch, DHCP device discovery.
-- **Monitoring** — per-device traffic and destinations through Tor.
-- **Log** — live Tor log with filter/follow.
-- **Settings** — package install panel + Tor configuration form.
+## Быстрый запуск (одной строкой на роутере)
 
-All views use their own `setInterval` timers instead of LuCI's global `poll`
-(which freezes in background tabs), and refresh instantly on tab visibility.
-
-## Bridges live in `/etc/tor/torrc_bridges`
-
-- `torrc` contains only `UseBridges 1` and `ClientTransportPlugin snowflake`.
-- `apply-bridges` regenerates `/etc/tor/torrc_bridges` from UCI (`tor_pro`),
-  including the required `ClientTransportPlugin <type> exec <binary>` lines
-  for obfs4 / meek / snowflake transports (auto-deduped against torrc).
-- `/etc/tor/torrc_bridges` is included via `tor.conf.tail_include`.
-
-## Requirements
-
-- OpenWrt 25.12.x (`mediatek/filogic` tested; should build for any target)
-- `tor`, `luci-base`
-- Optional transport proxies: `obfs4proxy`, `snowflake-client`, `meek-client`
-
-## Build
+Выполните на устройстве (SSH / терминал, от root):
 
 ```sh
-# in the OpenWrt SDK
-rsync -a --delete /path/to/luci-app-tor-jey/ feeds/luci/applications/luci-app-tor/
-make package/feeds/luci/luci-app-tor/compile -j$(nproc)
+sh -c "$(wget -qO- https://raw.githubusercontent.com/jeysson89/luci-app-tor-jey/main/scripts/install_tor_jey_on_device.sh)"
 ```
 
-The `.config` must contain `CONFIG_PACKAGE_luci-app-tor=m` and, for the Russian
-translation, `CONFIG_LUCI_LANG_ru=y` (otherwise the i18n apk is skipped silently).
+Скрипт спросит, какие пакеты поставить (`tor`, `luci-app-tor`, перевод, `obfs4proxy`, `snowflake-client`), откуда взять `.apk` (рядом в папке или из репозитория), импортирует ли мосты из `good_bridges.txt`, сгенерирует `/etc/tor/torrc_bridges`, перезапустит сервисы и дождётся `Bootstrap 100%`.
 
-## Install (apk)
+После установки открыть LuCI: `http://<ip-роутера>/cgi-bin/luci/admin/services/tor/bridges`
 
-```sh
-apk add --allow-untrusted luci-app-tor-*.apk
-apk add --allow-untrusted luci-i18n-tor-ru-*.apk   # optional
-/etc/init.d/rpcd restart
-```
+---
 
-## Quick start on the router (terminal)
+## Что это и для чего нужно
 
-Run directly on the device (SSH / serial terminal) as root:
+`luci-app-tor-jey` — форк стандартного `luci-app-tor` с расширенным веб-интерфейсом на LuCI. Нужен, чтобы не править `/etc/tor/torrc` и `/etc/config/tor_pro` вручную: все настройки Tor (мосты, плагины транспорта, клиенты, killswitch) настраиваются через браузер в LuCI.
 
-```sh
-# 1. Положите скрипт и apk-пакеты в одну папку на роутере (например /tmp)
-cd /tmp
-wget https://github.com/jeysson89/luci-app-tor-jey/raw/main/scripts/install_tor_jey_on_device.sh
-# или скопируйте скрипт с ПК: scp install_tor_jey_on_device.sh root@192.168.200.1:/tmp/
+Основной фокус — **работа с мостами**: компактный список, фоновый мониторинг доступности, индикатор «используется сейчас» для активного guardia, редактирование во всплывающем окне.
 
-# 2. Если ставите из локальных apk (сборка r14), положите их рядом:
-#    luci-app-tor-1.1.0-r14.apk  luci-i18n-tor-ru-*.apk
+---
 
-# 3. Запустите
-sh install_tor_jey_on_device.sh
-```
+## Принцип работы
 
-Что делает скрипт:
+- Все настройки хранятся в UCI (`config tor_pro`, секции `bridge` с опциями `type`, `enabled`, `addr` и т.д.).
+- Действие «Применить мосты» вызывает RPC-метод `apply-bridges`, который:
+  1. Собирает `/etc/tor/torrc_bridges` из включённых секций мостов.
+  2. Дописывает `ClientTransportPlugin <type> exec <binary>` (`obfs4` → `obfs4proxy`, `snowflake` → `snowflake-client` и т.д.) для типов, которые реально используются, если бинарник есть и плагина ещё нет в `/etc/tor/torrc` (без дублирования).
+  3. Перезапускает `tor`.
+- В `/etc/tor/torrc` остаются только `UseBridges 1` и `ClientTransportPlugin snowflake`; сами строки `Bridge` живут только в `/etc/tor/torrc_bridges`.
+- Фоновый мониторинг мостов (`bridge-mon`) работает через собственные `setInterval` в браузере — вкладки не замирают в фоне и обновляются при возврате.
 
-- Проверяет, что установлено (`tor`, `luci-app-tor`, `luci-i18n-tor-ru`, `obfs4proxy`, `snowflake-client`)
-- Докачивает недостающие пакеты из локальных `*.apk` или из репозитория `apk`
-- Добавляет в `/etc/tor/torrc`: `UseBridges 1` и `ClientTransportPlugin snowflake`
-- Предлагает импортировать мосты из `good_bridges.txt` (или своего файла) в UCI `tor_pro.b1…bN`
-- Генерирует `/etc/tor/torrc_bridges` с `ClientTransportPlugin obfs4 exec /usr/bin/obfs4proxy`
-- Перезапускает `tor` и `rpcd`, ждёт `Bootstrap 100%`
+---
 
-**Повторный запуск** спросит: «Удалить всё и хвосты (полная очистка)?» — ответ `y` удаляет пакеты, чистит `torrc_bridges`, сбрасывает UCI `tor_pro` и временные файлы.
+## Функционал
 
-Открыть LuCI: `http://<ip-роутера>/cgi-bin/luci/admin/services/tor/bridges`
+| Раздел | Что делает |
+|--------|------------|
+| **Статус** | Состояние демона Tor, PID, uptime, загрузка (bootstrap %), активный guard, сводка трафика |
+| **Мосты** | Компактный список всех мостов с галочкой «Использовать», типом, адресом, бейджами («используется сейчас», «доступен», «недоступен»), задержкой (ms), кнопками Тест / Изменить / Удалить; фоновый мониторинг вверху |
+| **Маршрутизация** | Клиенты Tor (IP/подсеть), killswitch (блокировка трафика если Tor упал), применение к ipset |
+| **Мониторинг** | Трафик по устройствам, таблица назначений через Tor |
+| **Лог** | Живой лог Tor с фильтром и режимом «следить» |
+| **Настройки** | Панель пакетов (что установлено) и форма конфигурации Tor |
 
-## RPC methods (`tor-pro-rpc`)
+---
 
-`status`, `config`, `devices`, `traffic`, `monitor`, `packages`, `bridge-types`,
-`destinations`, `test-bridge`, `bridge-mon`, `bridge-mon-now`, `apply-bridges`,
-`apply-routing`, `apply-monitor`, `install-package`.
+## Мосты
 
-## i18n
+- Живут только в `/etc/tor/torrc_bridges` (в `torrc` строк `Bridge` нет).
+- Все мосты из пользовательского списка (`good_bridges.txt`) импортируются как секции `b1…bN`, все `enabled=1`.
+- Обновление списка — через кнопку «Применить мосты»; tor перезапускается и подхватывает новые мосты.
 
-Russian (`po/ru/tor.po`) is updated for the new strings. Other locales keep
-upstream translations.
+---
 
-## License
+## RPC-методы (`tor-pro-rpc`)
 
-Apache-2.0 (see `LICENSE`). Original work by Sergey Ponomarev
-<stokito@gmail.com>; this fork adds the extensions described above.
+`status`, `config`, `devices`, `traffic`, `monitor`, `packages`, `bridge-types`, `destinations`, `test-bridge`, `bridge-mon`, `bridge-mon-now`, `apply-bridges`, `apply-routing`, `apply-monitor`, `install-package`.
+
+---
+
+## Лицензия
+
+Apache-2.0 (см. `LICENSE`). Основано на `luci-app-tor` (Sergey Ponomarev <stokito@gmail.com>); это форк с расширенным интерфейсом мостов и мониторинга.
